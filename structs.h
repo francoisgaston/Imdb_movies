@@ -5,19 +5,23 @@
 #ifndef TPE_FINAL_PI_STRUCTS_H
 #define TPE_FINAL_PI_STRUCTS_H
 #include <stddef.h>
-//flags para pasar el tipo del elemento sin pasar el string
-#define MOV 1 //ver de pasar a 3 para no tener cosas con el mismo valor
-#define SER 2
 
+#define BLOCK 10
 #define ERR 10
 #define OK 1
 #define INVALID -1
+
+
+enum typeOfContent{MOV = 1, SER};
+enum states{FALSE = 0, TRUE};
+
+
 //estructura para pasar contenido al TAD
 typedef struct TContent{
     char titleType;
     char* primaryTitle;
     int startYear;
-    char* genre;
+    char** genre;
     double rating;
     size_t numVotes;
 }TContent;

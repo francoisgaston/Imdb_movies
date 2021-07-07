@@ -1,7 +1,8 @@
 //
 // Created by Jose Menta on 06/07/2021.
 //
-//ver si copio los géneros o dejo el puntero que me pasan. Ahora los copio para ser constante en la estructura (o copia todos o almacena el puntero)
+//ver si copio los géneros o dejo el puntero que me pasan.
+//Ahora los copio para ser constante en la estructura (o copia todos o almacena el puntero)
 #include "yearsADT.h"
 #include <stdlib.h>
 #include <string.h>
