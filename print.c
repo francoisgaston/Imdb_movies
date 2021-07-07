@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "imdbADT.h"
 
+//SI TE LLEGA UN NULL PONGO UN GUION "-"
 
 void Query123(imdbADT Imdb);
 void Query4(imdbADT Imdb);
@@ -13,17 +14,17 @@ void showData(imdbADT Imdb) {
 
 void Query123(imdbADT imdb){
     FILE * q1, * q2, * q3;
-    q1 = fopen("../query1.csv", "wt");
-    q2 = fopen("../query2.csv", "wt");
-    q3 = fopen("../query3.csv", "wt");
+    q1 = fopen("./query1.csv", "wt");
+    q2 = fopen("./query2.csv", "wt");
+    q3 = fopen("./query3.csv", "wt");
     if (q1 == NULL || q2 == NULL || q3 == NULL) {
         printf("No se pudo crear un archivo\n");
         return;
     }
     //headers
-    fprintf(q1, "year;films;series");
-    fprintf(q2, "year;genre;films");
-    fprintf(q3, "startYear;film;votesFilm;ratingFilm;serie;votesSerie;ratingSerie");
+    fprintf(q1, "year;films;series\n");
+    fprintf(q2, "year;genre;films\n");
+    fprintf(q3, "startYear;film;votesFilm;ratingFilm;serie;votesSerie;ratingSerie\n");
     //data
     toBeginYear(imdb);
     while(hasNextYear(imdb)){
@@ -45,19 +46,19 @@ void Query123(imdbADT imdb){
 
 void Query4(imdbADT Imdb) {
     FILE * archivo;
-    archivo = fopen("../query4.csv", "wt");
+    archivo = fopen("./query4.csv", "wt");
     if (archivo == NULL) {
         printf("No se pudo crear un archivo\n");
         return;
     }
-    fprintf(archivo, "startYear;primaryTitle;numVotes;averageRating");
+    fprintf(archivo, "startYear;primaryTitle;numVotes;averageRating\n");
+    toBeginRanking(Imdb);
     while(hasNextRanking(Imdb)){
         tQ4 aux = nextRanking(Imdb);
         if(aux.startYear == INVALID)
             fprintf(archivo, "Año sin definir;%s;%ld;%.1f;\n", aux.primaryTitle, aux.numVotes, aux.averageRating);
         else
             fprintf(archivo, "%d;%s;%ld;%.1f;\n",aux.startYear, aux.primaryTitle, aux.numVotes, aux.averageRating);
-    }
-    toBeginRanking(Imdb);
+    } 
     fclose(archivo);
 }
