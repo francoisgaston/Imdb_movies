@@ -22,7 +22,6 @@ imdbADT newImdb(void){//libera automáticamente si no pudo reservar algo, y devu
     imdbADT ans= calloc(1,sizeof(struct imdbCDT));
     if(errno==ENOMEM){
         return NULL;
-        //usar errno en front, preguntar si se toca despues
     }
     ans->years=newYearsADT();
     if(errno==ENOMEM){
@@ -39,12 +38,18 @@ imdbADT newImdb(void){//libera automáticamente si no pudo reservar algo, y devu
 }
 int add(imdbADT imdb, const TContent*  content){
     int flag1=OK, flag2=OK;
-    if(content->startYear!=INVALID){ //si o si necesito que tenga un año para este query
+    if(content->startYear!=INVALID){
+    //como en el caso del yearsADT necesito tener un año, si en el csv no había un año no lo agrego como dato
         flag1=addYear(imdb->years, content);
     }
+    //libero el string con el genero, porque en yearsADT se copio y luego no se usa (podria guardar el puntero, hablarlo despues)
+    free(content->genre);
     if(flag1!=ERR) {
-        if (content->titleType == MOV && content->numVotes >= MIN_VOTES) {//intento agregarlo a los mejores 100
+    //si se pudo agregar en yearsADT, intento agregarlo en rankingADT
+        if (content->titleType == MOV && content->numVotes >= MIN_VOTES) {//si cumple con los requisitos
             flag2=addRanking(imdb->ranking, content);//ranking se va a quedar o liberar el char* que manda el front
+        }else{
+            free(content->primaryTitle); //como no se va a liberar en rankingADT, lo tengo que liberar ahora
         }
     }
     if(flag1==ERR || flag2==ERR){
@@ -62,10 +67,10 @@ int hasNextYear(imdbADT imdb){
 int hasNextGenres(imdbADT imdb){
     return hasNextGenresYearsADT(imdb->years);
 }
-tYear nextYear(imdbADT imdb){//no se mueve al proximo, porque necesita iterar por los generos antes
+tYear nextYear(imdbADT imdb){
     return nextYearADT(imdb->years);
 }
-tGenres nextGenres(imdbADT imdb){//esta funcion avanza automáticamente al siguiente
+tGenres nextGenres(imdbADT imdb){
     return nextGenresYearsADT(imdb->years);
 }
 void goToNextYear(imdbADT imdb){

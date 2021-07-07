@@ -8,14 +8,14 @@
 //flags para pasar el tipo del elemento sin pasar el string
 #define MOV 1 //ver de pasar a 3 para no tener cosas con el mismo valor
 #define SER 2
+
 #define ERR 10
-#define NOT_ERR 0
 #define OK 1
 #define INVALID -1
 //estructura para pasar contenido al TAD
 typedef struct TContent{
     char titleType;
-    char* ptimaryTitle;
+    char* primaryTitle;
     int startYear;
     char* genre;
     double rating;
