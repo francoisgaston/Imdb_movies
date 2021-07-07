@@ -60,6 +60,11 @@ void Query123(ImdbADT Imdb){
         printf("No se pudo crear el archivo del Querry 4\n");
         return;
     }
+    //headers
+    fprintf(q1, "year;films;series");
+    fprintf(q2, "year;genre;films");
+    fprintf(q3, "startYear;film;votesFilm;ratingFilm;serie;votesSerie;ratingSerie");
+    //data
     int i=0;
     while(i!=2){
         tYear aux = Imdb.vector[i++];
@@ -85,6 +90,7 @@ void Query4(ImdbADT Imdb) {
         printf("No se pudo crear el archivo del Querry 4\n");
         return;
     }
+    fprintf(archivo, "startYear;primaryTitle;numVotes;averageRating");
     int i=0;
     while(i!=2){
         tQ4 aux = Imdb.vector2[i++];
