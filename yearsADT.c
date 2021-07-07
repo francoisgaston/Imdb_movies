@@ -10,6 +10,7 @@
 #define BLOQUE 10
 //ver bien si tengo que tener en cuenta como se redondea un numero por si se representa de manera distinta a la exacta (que seguramente pase)
 #define SCORE(score) ((int)((score)*10))
+//cambiar a funcion redondear
 #define SCORE_TO_DOUBLE(score) ((score)/10.0)
 struct nodeGenre{
     char* genre;

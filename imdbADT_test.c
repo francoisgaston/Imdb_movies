@@ -32,7 +32,7 @@ int main(void){
     strcpy(title,"ARRIBA DE UNO");
     genre=malloc(20);
     strcpy(genre,"Accion");
-    movie=(TContent){MOV,title,2021,genre,8.0,120000};
+    movie=(TContent){MOV,title,2021,genre,8.0,130000};
     add(m,&movie);
     title= malloc(30);
     strcpy(title,"UNO");
