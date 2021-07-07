@@ -115,13 +115,12 @@ int main(int argQty, char * file[]){
             */
             //printf("%s\n",aux->primaryTitle);
             //printf("%s\n",aux->primaryTitle);
-            free(aux->primaryTitle);
-            free(aux->genre);
+            //free(aux->primaryTitle);
+            //free(aux->genre);
         }
         free(s);
     }
     //SOLAMENTE LIBERO LA ESTRUCTURA. LOS CHAR * NO
-    
     free(aux);
     fclose(text);
     free(s);
