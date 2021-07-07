@@ -106,7 +106,7 @@ static TListGenre addGenre( TListGenre listGenre, char *genre,int* flag){
  *Devuelve un char* con el string str, dejando en el parámetro de salida len la longitud del
  *string sin contar el '\0'
 */
-char* copy(char* from, unsigned int* len, const char* str,int* flag){
+static char* copy(char* from, unsigned int* len, const char* str,int* flag){
     char* ans=from;
     unsigned int cap=*len;
     unsigned int indexAns;

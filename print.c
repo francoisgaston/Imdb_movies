@@ -1,18 +1,17 @@
 #include <stdio.h>
-#include <stdio.h>
 #include "imdbADT.h"
 
 
-void Query123(ImdbADT Imdb);
-void Query4(ImdbADT Imdb);
+void Query123(imdbADT Imdb);
+void Query4(imdbADT Imdb);
 
 
-void showData(ImdbADT Imdb) {
+void showData(imdbADT Imdb) {
     Query123(Imdb);
     Query4(Imdb);
 }
 
-void Query123(ImdbADT Imdb){
+void Query123(imdbADT imdb){
     FILE * q1, * q2, * q3;
     q1 = fopen("../query1.csv", "wt");
     q2 = fopen("../query2.csv", "wt");
@@ -26,25 +25,25 @@ void Query123(ImdbADT Imdb){
     fprintf(q2, "year;genre;films");
     fprintf(q3, "startYear;film;votesFilm;ratingFilm;serie;votesSerie;ratingSerie");
     //data
-    toBeginYear(Imdb);
-    while(hasNextYear(Imdb)){
-        tYear aux = nextYear(Imdb);
-        fprintf(q1, "%d;%d;%d;\n", aux.startYear, aux.dimMovie, aux.dimSerie);
+    toBeginYear(imdb);
+    while(hasNextYear(imdb)){
+        tYear aux = nextYear(imdb);
+        fprintf(q1, "%d;%ld;%ld;\n", aux.startYear, aux.dimMovie, aux.dimSerie);
         fprintf(q3, "%d;%s;%ld;%.1f;%s;%ld;%.1f;\n", aux.startYear,
                 aux.primaryTitleMovie, aux.numVotesMovie, aux.averageRatingMovie,
                 aux.primaryTitleSerie, aux.numVotesSerie, aux.averageRatingSerie);
         while(hasNextGenres(imdb)){
-            struct structGenres aux2 = nextGenres(imdb);
-            fprintf(q2, "%d;%s;%d;\n", aux.startYear, aux2.genres, aux2.cant);
+            tGenres aux2 = nextGenres(imdb);
+            fprintf(q2, "%d;%s;%ld;\n", aux.startYear, aux2.genres, aux2.cant);
         }
-        goToNextYear(Imdb);
+        goToNextYear(imdb);
     }
     fclose(q1);
     fclose(q2);
     fclose(q3);
 }
 
-void Query4(ImdbADT Imdb) {
+void Query4(imdbADT Imdb) {
     FILE * archivo;
     archivo = fopen("../query4.csv", "wt");
     if (archivo == NULL) {
@@ -52,13 +51,13 @@ void Query4(ImdbADT Imdb) {
         return;
     }
     fprintf(archivo, "startYear;primaryTitle;numVotes;averageRating");
-    while(hasNextQ4(Imdb)){
-        tQ4 aux = nextQ4(Imdb);
+    while(hasNextRanking(Imdb)){
+        tQ4 aux = nextRanking(Imdb);
         if(aux.startYear == INVALID)
             fprintf(archivo, "Año sin definir;%s;%ld;%.1f;\n", aux.primaryTitle, aux.numVotes, aux.averageRating);
         else
             fprintf(archivo, "%d;%s;%ld;%.1f;\n",aux.startYear, aux.primaryTitle, aux.numVotes, aux.averageRating);
     }
-    toBeginQ4(Imdb);
+    toBeginRanking(Imdb);
     fclose(archivo);
 }
