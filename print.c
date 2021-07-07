@@ -1,30 +1,6 @@
 #include <stdio.h>
 #include <stdio.h>
-
-typedef struct Querry4 {
-    int startYear;
-    char * primaryTitle;
-    long numVotes;
-    float averageRating;
-} tQ4;
-
-typedef struct genres{
-    char * genres;
-    int cant;
-} tGenres;
-
-typedef struct year{
-    int startYear;
-    char * primaryTitleMovie;
-    long numVotesMovie;
-    float averageRatingMovie;
-    int dimMovie;
-    char * primaryTitleSerie;
-    long numVotesSerie;
-    float averageRatingSerie;
-    int dimSerie;
-    struct genres * curret;
-} tYear;
+#include "imdbADT.h"
 
 
 void Query123(ImdbADT Imdb);
@@ -53,7 +29,6 @@ void Query123(ImdbADT Imdb){
     toBeginYear(Imdb);
     while(hasNextYear(Imdb)){
         tYear aux = nextYear(Imdb);
-        toBeginGenres(Imdb);
         fprintf(q1, "%d;%d;%d;\n", aux.startYear, aux.dimMovie, aux.dimSerie);
         fprintf(q3, "%d;%s;%ld;%.1f;%s;%ld;%.1f;\n", aux.startYear,
                 aux.primaryTitleMovie, aux.numVotesMovie, aux.averageRatingMovie,
@@ -79,7 +54,10 @@ void Query4(ImdbADT Imdb) {
     fprintf(archivo, "startYear;primaryTitle;numVotes;averageRating");
     while(hasNextQ4(Imdb)){
         tQ4 aux = nextQ4(Imdb);
-        fprintf(archivo, "%d;%s;%ld;%.1f;\n", aux.startYear, aux.primaryTitle, aux.numVotes, aux.averageRating);
+        if(aux.startYear == INVALID)
+            fprintf(archivo, "Año sin definir;%s;%ld;%.1f;\n", aux.primaryTitle, aux.numVotes, aux.averageRating);
+        else
+            fprintf(archivo, "%d;%s;%ld;%.1f;\n",aux.startYear, aux.primaryTitle, aux.numVotes, aux.averageRating);
     }
     toBeginQ4(Imdb);
     fclose(archivo);

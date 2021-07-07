@@ -1,24 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <errno.h>
+#include "imdbADT.h"
 
 enum content{TITLE = 0, PTITLE, SYEAR, GENRE = 4, ARATE, NVOT};
-enum typeOfContent{MOVIE = 1, TVSERIES};
-enum states{FALSE = 0, TRUE};
-#define ERRORARG 1 //a definir (puede ser que quede mejor en estados)
-#define BLOCK 10
-
-typedef struct TContent{
-    char utility;
-    char titleType;
-    char * primaryTitle;
-    unsigned int startYear;
-    char * genre;
-    double averageRating;
-    size_t numVotes;
-}TContent;
 
 //VA O NO VA?
 void checkMemory(void * text){
@@ -76,8 +62,8 @@ int getTokens(char * line, TContent * aux){
                 aux->startYear = atoi(token);
                 counter++;
                 token = strtok(NULL, ";"); //Porque sino me quedo en el TOKEN de FIN DE ANIO
-                break;
-            case GENRE:
+                break;  //agregar aca el INVALID
+            case GENRE: //si falla el malloc del genero liberar los demas
                 aux->genre = copy(token);
                 break;
             case ARATE:
@@ -94,10 +80,10 @@ int getTokens(char * line, TContent * aux){
 }
 //PASAR SOLO UNA ESTRUCTURA
 //NO LIBERAR LOS CHAR * DE LA ESTRUCTURA
-int main(int argQty, char * file[]){
+void readInput(int argQty, char * file[]){
     if(argQty != 2){
-        printf("Cantidad de argumentos ingresados es incorrecto\n");
-        return ERRORARG;
+        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+        exit(1);
     }
     FILE * text = fopen(file[1], "r");  
     TContent * aux = malloc(sizeof(TContent));
@@ -107,16 +93,11 @@ int main(int argQty, char * file[]){
     while((s = getLine(text)) != NULL){
         if(getTokens(s, aux)){
             //asignar al adt SOLAMENTE en este caso
-            /*if(add(imdb, aux) == ERRORDETERMINADOPORJOSE){
-                //llamo a free del adt
-                //mensaje de error
-                //exit
+            if(add(imdb, aux) == ERR){
+                freeImdb(imdb);
+                fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+                exit(1);
             }
-            */
-            //printf("%s\n",aux->primaryTitle);
-            //printf("%s\n",aux->primaryTitle);
-            //free(aux->primaryTitle);
-            //free(aux->genre);
         }
         free(s);
     }
@@ -124,7 +105,6 @@ int main(int argQty, char * file[]){
     free(aux);
     fclose(text);
     free(s);
-    return 0;
 }
 
 
