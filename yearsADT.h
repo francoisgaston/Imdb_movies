@@ -18,7 +18,8 @@ yearsADT newYearsADT(void);
 /*
  * Agrega la información de una película o serie al TAD. El usuario debe pasar la información como un puntero a una estructura
  * TContent, que deberá liberar si es necesario luego de llamar a la funcion. (en este caso, el usuaro debería liberar tambien los
- * char* que envía en la estructura, pero como imdbADT los usa luego y se encarga de mantenerlos, se pide que no se liberen)
+ * char* que envía en la estructura con el título unicamente, pero como imdbADT los usa luego y se encarga de mantenerlos, se pide que no se liberen)
+ * En caso de ser una serie, no se tiene en cuenta su género, por lo que se debe encargar el usuario de liberar los string si es que los pasa en la estructura
  */
 int addYear(yearsADT years,const TContent* content);
 /*

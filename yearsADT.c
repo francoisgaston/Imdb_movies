@@ -78,20 +78,13 @@ static TListGenre addGenre( TListGenre listGenre, char *genre,int* flag){
             *flag=ERR;
             return listGenre;
         }
-        ans->genre= malloc((strlen(genre)+1)*sizeof(char));
-        if(errno==ENOMEM){
-        //se pudo reservar memoria para el nodo, pero no para el string del genero. Se libera entonces el nuevo nodo
-        //y se deja a la lista como estaba antes, indicando al programa que hubo un error para liberar toods los recursos
-            free(ans);
-            *flag=ERR;
-            return listGenre;
-        }
-        strcpy(ans->genre,genre);
+        ans->genre= genre;//se almacena el puntero que se envia desde el front
         ans->count=1;
         ans->tail=listGenre;
         return ans;
     }
     if(c==0){
+        free(genre);
         listGenre->count++;
         return listGenre;
     }
@@ -176,10 +169,11 @@ static TListYear addYearList(TListYear listYear,const TContent * content, int* f
             return listYear;
         }
         if(content->titleType==MOV) {
-        //solo agrego a la lista de géneros si es una película, por lo que pide en el query 3
-            ans->genres = addGenre(ans->genres, content->genre, flag);
+            for(int i=0;content->genre[i]!=NULL || *flag==ERR;i++) {
+                ans->genres = addGenre(ans->genres, content->genre[i], flag);
+            }
         }
-        //si el flag queda en ERR despues de esta funcion, igualmente se sigue con la lista y despues el front se encarga de liberar la estructura
+        //si el flag queda en ERR despues de esta funcion, igualmente se sigue con la lista de años y despues el front se encarga de liberar la estructura
         //lo que fue reservado antes va a poder liberarse, solo no se pudo reservar para la lista de generos
         //y en ese caso ya se arreglo como para que los otros nodos queden como antes para liberarse con freeYearsADT
         ans->tail=listYear;
@@ -188,7 +182,9 @@ static TListYear addYearList(TListYear listYear,const TContent * content, int* f
     if(listYear->year==content->startYear){
         //si ya hay un nodo con esa informacion, agrego los datos de la nueva película/serie
         if(content->titleType==MOV) {
-            listYear->genres= addGenre(listYear->genres,content->genre,flag);
+            for(int i=0;content->genre[i]!=NULL && *flag!=ERR;i++){
+                listYear->genres = addGenre(listYear->genres, content->genre[i], flag);
+            }
         }
         updateMoviesSeries(listYear, content->primaryTitle, content->titleType, content->rating, content->numVotes, flag);
         return listYear;

@@ -42,8 +42,6 @@ int add(imdbADT imdb, const TContent*  content){
     //como en el caso del yearsADT necesito tener un año, si en el csv no había un año no lo agrego como dato
         flag1=addYear(imdb->years, content);
     }
-    //libero el string con el genero, porque en yearsADT se copio y luego no se usa (podria guardar el puntero, hablarlo despues)
-    free(content->genre);
     if(flag1!=ERR) {
     //si se pudo agregar en yearsADT, intento agregarlo en rankingADT
         if (content->titleType == MOV && content->numVotes >= MIN_VOTES) {//si cumple con los requisitos

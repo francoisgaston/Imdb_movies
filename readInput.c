@@ -88,7 +88,7 @@ static int getTokens(char * line, TContent * aux){
                 aux->primaryTitle = copy(token);
                 break;
             case SYEAR:
-                aux->startYear = (!strcmp(token, "\\N")) ? -1 : atoi(token);
+                aux->startYear = (!strcmp(token, "\\N")) ? INVALID : atoi(token);
                 counter++;
                 strtok(NULL, ";"); //Porque sino me quedo en el TOKEN de FIN DE ANIO
                 break;  //agregar aca el INVALID

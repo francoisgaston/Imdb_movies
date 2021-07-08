@@ -21,6 +21,7 @@ imdbADT newImdb(void);
  * Agrega la informacion de una película o serie al TAD. Recibe un puntero a una estructura TContent que el usuario deberá liberar luego
  * en caso de ser necesario. El usuario no debe modificar o liberar los char* que se pasan con la estructura (que deben estar en el Heap),
  * ya que en el TAD se guarda una referencia a los mismos y no se copia nuevamente, por lo que el TAD se encarga de liberarlos en caso de ser necesario.
+ * Si se debe liberar el vector de char* que se pasa con la lista de géneros de la película
  */
 int add(imdbADT imdb, const TContent* content);
 /*
