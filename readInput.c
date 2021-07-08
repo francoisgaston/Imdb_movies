@@ -8,18 +8,26 @@ enum content{PTITLE=1, SYEAR, GENRE = 4, ARATE, NVOT};
 
 // Funcion que verifica si hay memoria disponible para guardar data.
 static void checkMemory(void * text){
-    if(errno == ENOMEM){
+    if( text==NULL ||errno == ENOMEM){
         free(text);
         fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
         exit(1);
     }
 }
-
+static int checkMem(void* mem, int* ffree){
+    if(mem==NULL || errno==ENOMEM){
+        free(mem);
+        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+        *ffree=ERR;
+        return 0;
+    }
+    return 1;
+}
 /* Funcion que verifica memoria disponible para el char ** genre.
 ** Además libera la estructura antes de abortar.
 */
 static void checkMemGenre(TContent * aux, int idx){
-    if(errno == ENOMEM) {
+    if( aux==NULL || errno == ENOMEM) {
         for (int i = 0; i < idx; i++)
             free(aux->genre[i]);
         free(aux->genre);
@@ -32,20 +40,24 @@ static void checkMemGenre(TContent * aux, int idx){
 /* Funcion que se encarga de obtener los tokens del campo genero.
 **
 */
-static char * lineToTokens(char * line, char c, size_t * pos){
+static char * lineToTokens(const char * line, char c, int * pos, int* ffree){//despues
     int i, newDim = 0;
     char * ans = NULL;
     for(i = *pos; line[i] != c && line[i] != 0 ; i++){
         if(newDim % BLOCK == 0){
             ans = realloc(ans, (newDim + BLOCK) * sizeof(char));
-            checkMemory(ans);//no funciona
+            if(!checkMem(ans,ffree)){
+                return NULL;
+            }
         }
         ans[newDim++] = line[i];
     }
     if(ans != NULL){
         *pos = line[i] == c ? i+1 : i ;
         ans = realloc(ans, (newDim+1) * sizeof(char));
-        checkMemory(ans);
+        if(!checkMem(ans,ffree)){
+            return NULL;
+        }
         ans[newDim] = 0;
     }
     return ans;
@@ -54,56 +66,57 @@ static char * lineToTokens(char * line, char c, size_t * pos){
 /* Funcion que obtiene una copia de una linea del archivo .csv
 ** y devuelve la dimension de la misma.
 */
-static char * getLine(FILE * text, char * dest, unsigned int * dim, int * flag) {
+static char * getLine(FILE * text, char * dest, unsigned int * dim, int * ffree) {
     char * ans = dest;
     unsigned int i = 0 , idx = *dim;
-    int c;
-    while( (c = fgetc(text)) != '\n' && c != EOF){
-        if(i == idx){
+    int c= fgetc(text);
+    if(c==EOF){
+        return NULL;
+    }
+    while ( c != '\n' && c != EOF) {
+        if (i == idx) {
             ans = realloc(ans, (i + BLOCK) * sizeof(char));
-            //errno == ENOMEM (PREGUNTAR
-            checkMemory(ans);
+            checkMem(ans,ffree);
             idx += BLOCK;
         }
         ans[i++] = c;
+        c= fgetc(text);
     }
-    if(*flag){
-        ans = realloc(ans, (i+1) * sizeof(char));
-        checkMemory(ans);
-        ans[i] = 0;
-        *dim = i;
-        if(c == EOF){
-            *flag = FALSE;
-        }
-    }else{
-        free(dest);
-        ans = NULL;
-    }
+    //si hay \n despues de la ultima linea con informacion de contenido
+    ans = realloc(ans, (i+1) * sizeof(char));
+    checkMem(ans,ffree);
+    ans[i] = 0;
+    *dim = i;
     return ans;
 }
 /* Funcion que crea una copia del string recibido. Además verifica si hay memoria disponible
 ** para poder llevar a cabo esta acción.
 */
-static char * copy(char * source){
+static char * copy(char * source,int* ffree){
     char * ans = malloc((strlen(source)+1) * sizeof(char));
-    checkMemory(ans);
+    if(checkMem(ans,ffree)){
     strcpy(ans, source);
     return ans;
+    }
+    return NULL;
 }
 /* Funcion que copia los generos en el vector de punteros a char que se encuentra en la
 ** estructura.
 */
-static void copy_genres(TContent * aux , char * line){
+static void copyGenres(TContent * aux , char * line, int* ffree){//revisar
     aux->genre = NULL;
-    size_t pos = 0;
-    char * token = lineToTokens(line, ',', &pos);
+    int pos = 0;
+    char * token = lineToTokens(line, ',', &pos,ffree);
     int i = 0;
-    for(; token != NULL ; i++,token = lineToTokens(line, ',', &pos)){
+    for(; token != NULL && *ffree!=ERR ; i++,token = lineToTokens(line, ',', &pos,ffree)){
         if((i % BLOCK) == 0) {
             aux->genre = realloc(aux->genre, (BLOCK + i) * sizeof(char *));
             checkMemGenre(aux,BLOCK+i);
         }
         aux->genre[i] = token;
+    }
+    if(*ffree==ERR){
+        //liberar todos
     }
     aux->genre = realloc(aux->genre, (i+1) * sizeof(char *));
     checkMemGenre(aux,i+1);
@@ -117,7 +130,7 @@ static void copy_genres(TContent * aux , char * line){
 ** Además guarda cada token en su correspondiente campo presente en la estructura que
 ** almacena toda la información de la película/serie.
 */
-static int getTokens(char * line, TContent * aux){
+static int getTokens(char * line, TContent * aux, int* ffree){
     //ESTO FUNCION PERO DEBEMOS PROBAR QUE PASA SI EN LOS
     //STRTOK DE ABAJO SE PONE NULL O EL MISMO LINE.
     char * token = strtok(line, ";");
@@ -129,10 +142,10 @@ static int getTokens(char * line, TContent * aux){
         return FALSE;
     }
     char counter = 0;
-    while((token = strtok(NULL, ";")) != NULL){
+    while((token = strtok(NULL, ";")) != NULL && *ffree!=ERR){
         switch(++counter){
             case PTITLE:
-                aux->primaryTitle = copy(token);
+                aux->primaryTitle = copy(token,ffree);
                 break;
             case SYEAR:
                 aux->startYear = (!strcmp(token, "\\N")) ? INVALID : atoi(token);
@@ -145,7 +158,7 @@ static int getTokens(char * line, TContent * aux){
                     checkMemGenre(aux,1);
                 }
                 else{
-                    copy_genres(aux,token);//tendriamos que hacer un free aca
+                    copyGenres(aux, token,ffree);//tendriamos que hacer un free aca
                 }
                 break;
             case ARATE:
@@ -184,16 +197,27 @@ void readInput(int argQty, char * file[], imdbADT imdb){
     /* Ciclo que obtiene la información del archivo en su totalidad (a menos que existan errores).
     ** Además le da la informacion al ADT para que este mismo la procese.
     */
-    while((s = getLine(text,s,&dim,&flag)) != NULL){ //Se obtiene la linea actual.
-        if(getTokens(s, aux)){ //Se obtienen los tokens de la linea actual.
+    int ffree=OK;
+    while((s = getLine(text,s,&dim,&flag)) != NULL && ffree!=ERR){ //Se obtiene la linea actual.
+        if(getTokens(s, aux, &ffree) && ffree!=ERR) { //Se obtienen los tokens de la linea actual.
             //asignar al adt SOLAMENTE en este caso
-            if(add(imdb, aux) == ERR){
+            if (add(imdb, aux) == ERR) {
                 freeImdb(imdb);
                 fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
                 exit(1);
             }
+        }else if (ffree==ERR){
+            //liberar estructura y tode lo que tiene adentro
+            for(int i=0;aux->genre!= NULL && aux->genre[i]!=NULL;i++){
+                free(aux->genre[i]);
+            }
             free(aux->genre);
+            free(aux->primaryTitle);
+            free(aux);
+            fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+            exit(1);
         }
+        free(aux->genre);
     }
     free(s);
     free(aux);

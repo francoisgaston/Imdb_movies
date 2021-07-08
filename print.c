@@ -57,7 +57,7 @@ void Query4(imdbADT Imdb) {
     while(hasNextRanking(Imdb)){
         TRanking aux = nextRanking(Imdb);
         if(aux.startYear == INVALID)
-            fprintf(archivo, "Año sin definir;%s;%ld;%.1f;\n", aux.primaryTitle, aux.numVotes, aux.averageRating);
+            fprintf(archivo, "-;%s;%ld;%.1f;\n", aux.primaryTitle, aux.numVotes, aux.averageRating);
         else
             fprintf(archivo, "%d;%s;%ld;%.1f;\n",aux.startYear, aux.primaryTitle, aux.numVotes, aux.averageRating);
     } 
