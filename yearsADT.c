@@ -66,6 +66,14 @@ void freeYearsADT(yearsADT years) {
     freeListYear(years->years);
     free(years);
 }
+static int checkMem(void* mem, int* flag){
+    if(mem==NULL || errno == ENOMEM){
+        free(mem);
+        *flag=ERR;
+        return 0;
+    }
+    return 1;
+}
 static char score(double rating){
     return (char)(floor(rating*10+0.5));
 }
@@ -74,10 +82,7 @@ static TListGenre addGenre( TListGenre listGenre, char *genre,int* flag){
     int c;
     if(listGenre==NULL || (c= strcmp(listGenre->genre,genre))>0){
         TListGenre ans= malloc(sizeof (struct nodeGenre));
-        if(errno==ENOMEM){
-        //no fue posible reservar memoria para el nodo. Se deja a la lista como estaba anteriormente y se indica al programa
-        //que hubo un error
-            *flag=ERR;
+        if(!checkMem(ans,flag)){
             return listGenre;
         }
         ans->genre= genre;//se almacena el puntero que se envia desde el front
@@ -108,10 +113,7 @@ static char* copy(char* from, unsigned int* len, const char* str,int* flag){
     for(indexAns=0;*str!='\0';indexAns++,str++){
         if(indexAns==cap){
             ans= realloc(ans,(indexAns+BLOQUE)*sizeof (char));
-            if(errno==ENOMEM){
-            //tengo que liberar la estructura, devuelvo NULL para que al liberar la estrucrura no tenga errores al liberar
-                free(ans);//revisar si es muy necesario
-                *flag=ERR;
+            if(!checkMem(ans,flag)){
                 return NULL;
             }
             cap+=BLOQUE;
@@ -119,9 +121,7 @@ static char* copy(char* from, unsigned int* len, const char* str,int* flag){
         ans[indexAns]=*str;
     }
     ans= realloc(ans,(indexAns+1)*sizeof (char));
-    if(errno==ENOMEM){
-        free(ans);
-        *flag=ERR;
+    if(!checkMem(ans,flag)){
         return NULL;
     }
     ans[indexAns]='\0';
@@ -139,7 +139,7 @@ static void updateMoviesSeries(TListYear ans, char* primaryTitle, char titleType
         if(ans->bestMovie.primaryTitle == NULL || ans->bestMovie.numVotes < numVotes){
             ans->bestMovie.primaryTitle= copy(ans->bestMovie.primaryTitle, &ans->bestMovie.len, primaryTitle, flag);
             //si hay un error en la funcion copy, se actualiza el flag correspondiente. Se continúa con la asignacion aca
-            //porque ya hay memoria reservada y para evitar casos especiales
+            //porque ya hay memoria reservada para estos campos y para evitar casos especiales
             ans->bestMovie.score=scoreToUse;
             ans->bestMovie.numVotes=numVotes;
         }
@@ -157,21 +157,15 @@ static void updateMoviesSeries(TListYear ans, char* primaryTitle, char titleType
 static TListYear addYearList(TListYear listYear,const TContent * content, int* flag){
     if(listYear==NULL || listYear->startYear < content->startYear){
         TListYear ans= calloc(1,sizeof (struct nodeYear));
-        if(errno==ENOMEM){
-        //no fue posible reservar memoria para el nodo. Se deja a la lista como estaba antes y se avisa con el flag
-            *flag=ERR;
+        if(!checkMem(ans,flag)){
             return listYear;
         }
         ans->startYear=content->startYear;
         updateMoviesSeries(ans, content->primaryTitle, content->titleType, content->averageRating, content->numVotes, flag);
-        if(*flag==ERR){
-        //si hubo un error reservando memoria para las películas/series, se libera el nodo reservado anteriormente y se avisa con el flag
-            free(ans);
-            *flag=ERR;
-            return listYear;
-        }
-        if(content->titleType==MOV) {
-            for(int i=0;content->genre[i]!=NULL || *flag==ERR;i++) {
+        //si flag queda en ERR aca, uno de los títulos va a quedar en NULL y el otro ya va a estar inicializado, por lo que
+        //la función freeListYear va a poder liberar correctamente el TAD (que se debe llamar en el front)
+        if(content->titleType==MOV && *flag!=ERR) {
+            for(int i=0;content->genre[i]!=NULL && *flag!=ERR;i++) {
                 ans->genres = addGenre(ans->genres, content->genre[i], flag);
             }
         }
@@ -183,12 +177,12 @@ static TListYear addYearList(TListYear listYear,const TContent * content, int* f
     }
     if(listYear->startYear == content->startYear){
         //si ya hay un nodo con esa informacion, agrego los datos de la nueva película/serie
-        if(content->titleType==MOV) {
+        updateMoviesSeries(listYear, content->primaryTitle, content->titleType, content->averageRating, content->numVotes, flag);
+        if(content->titleType==MOV && *flag!=ERR) {
             for(int i=0;content->genre[i]!=NULL && *flag!=ERR;i++){
                 listYear->genres = addGenre(listYear->genres, content->genre[i], flag);
             }
         }
-        updateMoviesSeries(listYear, content->primaryTitle, content->titleType, content->averageRating, content->numVotes, flag);
         return listYear;
     }
     listYear->tail= addYearList(listYear->tail,content,flag);

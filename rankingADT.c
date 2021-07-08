@@ -105,7 +105,7 @@ int addRanking(rankingADT ranking, const TContent* content){
     if(ranking->cant==MAX_RANKING && ranking->last->score> score(content->averageRating)){
         //si ya no hay espacio y seguro todos los que estan son mejores
         //si ranking->cant==MAX_RANKING, seguro last no es NULL
-        free(content->primaryTitle);
+        free(content->primaryTitle);//no se va a usar el título
         return OK; //ni intento agregarlo, seguro lo voy a sacar despues. no hubo error igual
     }
     TListRanking aux=NULL; //para ver si tengo que cambiar el last
@@ -119,7 +119,7 @@ int addRanking(rankingADT ranking, const TContent* content){
         ranking->last=aux;
     }
     ranking->cant+=flag;//ya sé que es o 0 o 1
-    if(ranking->cant>MAX_RANKING){//si me paso de los 100, tengo que eliminar el peor
+    if(ranking->cant>MAX_RANKING){//si se pasa de los 100, tiene que eliminar el peor
         removeLast(ranking);
         //se encarga de liberar el nodo y el char* del titulo que se paso en el front
         ranking->cant--;

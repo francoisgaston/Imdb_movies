@@ -42,19 +42,18 @@ int add(imdbADT imdb, const TContent*  content){
     //como en el caso del yearsADT necesito tener un año, si en el csv no había un año no lo agrego como dato
         flag1=addYear(imdb->years, content);
     }else{
-        for(int i=0;content->genre[i]!=NULL;i++){
+        for(int i=0;content->genre[i]!=NULL;i++){ //se tienen que liberar los géneros, ya que no se utilizarán (en el caso de las películas, para las series no se deberían pasar)
             free(content->genre[i]);
         }
     }
-    if(flag1!=ERR) {
     //si se pudo agregar en yearsADT, intento agregarlo en rankingADT
-        if (content->titleType == MOV && content->numVotes >= MIN_VOTES) {//si cumple con los requisitos
-            flag2=addRanking(imdb->ranking, content);//ranking se va a quedar o liberar el char* que manda el front
-        }else{
-            free(content->primaryTitle); //como no se va a liberar en rankingADT, lo tengo que liberar ahora
-        }
+   if ( flag1!= ERR && content->titleType == MOV && content->numVotes >= MIN_VOTES) {//si cumple con los requisitos
+        flag2=addRanking(imdb->ranking, content);//ranking se va a quedar o liberar el char* que manda el front
+    }else{
+        free(content->primaryTitle); //como no se va a liberar en rankingADT, se tiene que liberar ahora
     }
-    if(flag1==ERR || flag2==ERR){
+
+    if(flag1==ERR || flag2==ERR){ //si hubo error en alguna, se avisa que termine la ejecucion y se libere la estructura
         return ERR;
     }
     return OK;
