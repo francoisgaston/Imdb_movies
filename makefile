@@ -1,4 +1,4 @@
-FLAGS = -Wall -pedantic -std=c99 -lm -fsanitize=address
+FLAGS = -Wall -pedantic -std=c99 -fsanitize=address
 
 FILES = main.c imdbADT.c rankingADT.c readInput.c yearsADT.c print.c
 
@@ -8,9 +8,9 @@ COMPILER = gcc
 
 TEST_FILE = test.csv
 
-DATASET_FILE = imdbtitles.csv
+DATASET_FILE = imdbv3.csv
 
-RUN = @$(COMPILER) $(FLAGS) $(FILES) -o $(EXE_FILE)
+RUN = @$(COMPILER) $(FLAGS) $(FILES) -o $(EXE_FILE) -lm
 
 imdb:
 	$(RUN)
@@ -27,5 +27,5 @@ test:
 
 run:
 	$(RUN)
-	@./$(EXE_FILE) $(DATASET_FILE)
-	@echo "Proceso listo"
+	./$(EXE_FILE) $(DATASET_FILE)
+	echo "Proceso listo"
