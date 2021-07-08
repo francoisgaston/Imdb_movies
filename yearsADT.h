@@ -7,32 +7,29 @@
 #include "structs.h"
 /*
  * yearsADT es una estructura que almacena películas y series en orden descendente por año, donde para cada uno guarda
- * la mejor película, la mejor serie, la cantidad de películas, la cantidad de series y una lista donde
- * se gurada la cantidad de películas de cada género.
+ * la mejor película, la mejor serie, la cantidad de películas, la cantidad de series y una lista con la cantidad de películas de cada género.
  */
 typedef struct yearsCDT* yearsADT;
 /*
- * crea una nueva estrucura vacía
+ * crea una nueva estrucura vacía.
 */
 yearsADT newYearsADT(void);
 /*
  * Agrega la información de una película o serie al TAD. El usuario debe pasar la información como un puntero a una estructura
- * TContent, que deberá liberar si es necesario luego de llamar a la funcion. (en este caso, el usuaro debería liberar tambien los
- * char* que envía en la estructura con el título unicamente, pero como imdbADT los usa luego y se encarga de mantenerlos, se pide que no se liberen)
- * En caso de ser una serie, no se tiene en cuenta su género, por lo que se debe encargar el usuario de liberar los string si es que los pasa en la estructura
+ * TContent. (ver imdbADT.h sobre como pasar los datos en la estructura).
  */
 int addYear(yearsADT years,const TContent* content);
 /*
- * Libera todos los recursos utilizados por la estructura
+ * Libera todos los recursos utilizados por la estructura.
  */
 void freeYearsADT(yearsADT year);
 /*
  * Inicializa un iterador para recorrer la lista de todos los años en orden descendente y otro iterador para recorrer la
- * lista de géneros de ese año en orden alfabético
+ * lista de géneros de ese año en orden alfabético.
  */
 void toBeginYearsADT(yearsADT years);
 /*
- * Retorna 1 si hay un año siguiente, 0 si no
+ * Retorna 1 si hay un año siguiente, 0 si no.
  */
 int hasNextYearsADT(yearsADT years);
 /*
@@ -41,18 +38,16 @@ int hasNextYearsADT(yearsADT years);
  */
 int hasNextGenresYearsADT(yearsADT years);
 /*
- * Devuelve una estructura de tipo tYear, donde la información será la del iterador por años. El usuario no debe modificar los char* que
- * devuelve la fucnion en la estructura, ya que unicamente se copian los que estan almacenados para ahorrar memoria.
+ * Devuelve una estructura de tipo TYear, donde la información será la del iterador por años.
  * A diferencia de otras funciones similares,esta funcion no mueve el iterador al siguiente elemento, ya que quizás el usuario
  * quiere iterar por los elementos de la lista de géneros de ese año.
  */
-tYear nextYearADT(yearsADT years);
+TYear nextYearADT(yearsADT years);
 /*
- * Devuelve una estructura tGenres con la información del nodo de la lista de géneros del año donde se está iterando. Esta funcion
- * mueve el iterador por géneros al siguiente elemento luego de copiar los datos. Nuevamente, el usuario no debe modificar los char*
- * que devuelve en la estructura porque son los que usa el backend.
+ * Devuelve una estructura TGenre con la información del nodo de la lista de géneros del año donde se está iterando. Esta funcion
+ * mueve el iterador por géneros al siguiente elemento luego de copiar los datos.
  */
-tGenres nextGenresYearsADT(yearsADT years);
+TGenre nextGenresYearsADT(yearsADT years);
 /*
  * Avanza el iterador por años al siguiente. En caso de existir, tambien deja al iterador por géneros en la lista de géneros del mismo.
  */

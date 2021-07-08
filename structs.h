@@ -22,22 +22,22 @@ typedef struct TContent{
     char* primaryTitle;
     int startYear;
     char ** genre;
-    double rating;
+    double averageRating;
     size_t numVotes;
 }TContent;
 //estructuras auxiliares para los iteradores
 //estructura para iterar en el top 100 de peliculas
-typedef struct Querry4 {
+typedef struct Query4 {
     int startYear;
     char * primaryTitle;
     size_t numVotes;
     double averageRating;
-} tQ4;
+} TRanking;
 //estructura para iterar en los géneros de cada año
 typedef struct genres{
-    char * genres;
+    char * genre;
     size_t cant;
-} tGenres;
+} TGenre;
 //estructura para iterar en la lista de años
 typedef struct year{
     int startYear;
@@ -49,6 +49,5 @@ typedef struct year{
     size_t numVotesSerie;
     double averageRatingSerie;
     size_t dimSerie;
-    tGenres * current;//esto debería ser un vector o un puntero? No puedo pasar el tipo del puntero al front
-} tYear;
+} TYear;
 #endif //TPE_FINAL_PI_STRUCTS_H

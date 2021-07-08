@@ -34,9 +34,9 @@ void toBeginRankingADT(rankingADT ranking);
  */
 int hasNextRankingADT(rankingADT ranking);
 /*
- * Devuelve una estructura tQ4 con la informacion del iterador en el ranking. El ususario no debe modificar el char* con el título en la estructura,
+ * Devuelve una estructura TRanking con la informacion del iterador en el ranking. El ususario no debe modificar el char* con el título en la estructura,
  * ya que el mismo se utiliza en el TAD. Avanza al iterador al siguiente elemento automáticamente.
  */
-tQ4 nextRankingADT(rankingADT ranking);
+TRanking nextRankingADT(rankingADT ranking);
 
 #endif //TPE_FINAL_PI_RANKINGADT_H

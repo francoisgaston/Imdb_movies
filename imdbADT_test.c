@@ -86,7 +86,7 @@ int main(void){
     free(genres);
     toBeginYear(m);
     //2021
-    tYear ans= nextYear(m);
+    TYear ans= nextYear(m);
     assert(ans.startYear==2021);
     assert(strcmp(ans.primaryTitleMovie,"DOS(mejor rating)")==0);
     assert(strcmp(ans.primaryTitleSerie,"UNO_SERIE")==0);
@@ -97,16 +97,16 @@ int main(void){
     printf("Rating movie: %f=9.2\n",ans.averageRatingMovie);
     printf("Rating serie: %f=10.0\n",ans.averageRatingSerie);
     assert(hasNextGenres(m)==1);
-    tGenres gen= nextGenres(m);
-    assert(strcmp(gen.genres,"Accion")==0);
+    TGenre gen= nextGenres(m);
+    assert(strcmp(gen.genre,"Accion")==0);
     assert(gen.cant==4);//solo se cuentan las películas
     assert(hasNextGenres(m)==1);//no deberia guardarse lo de las series
     gen= nextGenres(m);
-    assert(strcmp(gen.genres,"Aventura")==0);
+    assert(strcmp(gen.genre,"Aventura")==0);
     assert(gen.cant==1);//solo se cuentan las películas
     assert(hasNextGenres(m)==1);
     gen= nextGenres(m);
-    assert(strcmp(gen.genres,"Drama")==0);
+    assert(strcmp(gen.genre,"Drama")==0);
     assert(gen.cant==1);//solo se cuentan las películas
     assert(hasNextGenres(m)==0);
     goToNextYear(m);
@@ -119,11 +119,11 @@ int main(void){
     assert(ans.primaryTitleSerie==NULL);
     assert(hasNextGenres(m)==1);
     gen= nextGenres(m);
-    assert(strcmp(gen.genres,"Accion")==0);
+    assert(strcmp(gen.genre,"Accion")==0);
     assert(gen.cant==1);
     assert(hasNextGenres(m)==1);
     gen= nextGenres(m);
-    assert(strcmp(gen.genres,"Drama")==0);
+    assert(strcmp(gen.genre,"Drama")==0);
     assert(gen.cant==1);
     assert(hasNextGenres(m)==0);
     goToNextYear(m);
@@ -131,7 +131,7 @@ int main(void){
     toBeginRanking(m);
     //estoy liberando algo antes de tiempo, revisar
     while (hasNextRanking(m)){
-        tQ4 ansR= nextRanking(m);
+        TRanking ansR= nextRanking(m);
         printf("año: %d, titulo: %s, cantVotos: %ld, rating: %f\n",ansR.startYear,ansR.primaryTitle,ansR.numVotes,ansR.averageRating);
     }
     assert(hasNextRanking(m)==0);

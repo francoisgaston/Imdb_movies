@@ -8,11 +8,10 @@
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
+#include <math.h>
 #define BLOQUE 10
-//ver bien si tengo que tener en cuenta como se redondea un numero por si se representa de manera distinta a la exacta (que seguramente pase)
-#define SCORE(score) ((int)((score)*10))
 //cambiar a funcion redondear
-#define SCORE_TO_DOUBLE(score) ((score)/10.0)
+#define SCORE_TO_RATING(score) ((score)/10.0)
 struct nodeGenre{
     char* genre;
     size_t count;
@@ -20,13 +19,13 @@ struct nodeGenre{
 };
 typedef struct nodeGenre* TListGenre;
 struct movie{//estructura para guardar los datos relevantes de una película/serie
-    char* title;
-    unsigned int len;
-    size_t cantVotes;
-    int score;//vamos a guardar la calificacion como un entero, ocupa menos espacio y es más fácil para comparar
+    char* primaryTitle;
+    unsigned int len; //longitud del título, se usa para evitar reallocs
+    size_t numVotes;
+    char score;//vamos a guardar la calificacion como un entero, ocupa menos espacio y es más fácil para comparar
 };
 struct nodeYear{
-    int year;
+    int startYear;
     struct movie bestMovie;
     struct movie bestSerie;
     size_t cantMovies;
@@ -58,14 +57,17 @@ static void freeListYear(TListYear year){
         return;
     }
     freeListYear(year->tail);
-    free(year->bestMovie.title);
-    free(year->bestSerie.title);
+    free(year->bestMovie.primaryTitle);
+    free(year->bestSerie.primaryTitle);
     freeListGenre(year->genres);
     free(year);
 }
 void freeYearsADT(yearsADT years) {
     freeListYear(years->years);
     free(years);
+}
+static char score(double rating){
+    return (char)(floor(rating*10+0.5));
 }
 //agrega un nodo a la lista de géneros ordenados ascendentemente
 static TListGenre addGenre( TListGenre listGenre, char *genre,int* flag){
@@ -131,37 +133,37 @@ static char* copy(char* from, unsigned int* len, const char* str,int* flag){
  * calificación. Se crea una copia del string del título si es necesario con la función copy. Es necesario para su correcto funcionamiento que
  * los TListYear que se pasen no tengan basura. Tabien se actualizan los contadores de películas/series
  */
-static void updateMoviesSeries(TListYear ans, char* title, char type, double score, size_t cantVotes,int* flag){
-    int scoreToUse= SCORE(score);//lo voy a guardar como un entero
-    if(type==MOV){
-        if(ans->bestMovie.title==NULL || ans->bestMovie.score<scoreToUse){
-            ans->bestMovie.title= copy(ans->bestMovie.title,&ans->bestMovie.len,title,flag);
+static void updateMoviesSeries(TListYear ans, char* primaryTitle, char titleType, double averageRating, size_t numVotes, int* flag){
+    char scoreToUse= score(averageRating);//lo voy a guardar como un entero
+    if(titleType == MOV){
+        if(ans->bestMovie.primaryTitle == NULL || ans->bestMovie.score < scoreToUse){
+            ans->bestMovie.primaryTitle= copy(ans->bestMovie.primaryTitle, &ans->bestMovie.len, primaryTitle, flag);
             //si hay un error en la funcion copy, se actualiza el flag correspondiente. Se continúa con la asignacion aca
             //porque ya hay memoria reservada y para evitar casos especiales
             ans->bestMovie.score=scoreToUse;
-            ans->bestMovie.cantVotes=cantVotes;
+            ans->bestMovie.numVotes=numVotes;
         }
         ans->cantMovies++;
     }else{//es una serie, otra cosa no se manda al TAD para los queries necesarios
-        if(ans->bestSerie.title==NULL || ans->bestSerie.score<scoreToUse){
-            ans->bestSerie.title= copy(ans->bestSerie.title,&ans->bestSerie.len,title,flag);
+        if(ans->bestSerie.primaryTitle == NULL || ans->bestSerie.score < scoreToUse){
+            ans->bestSerie.primaryTitle= copy(ans->bestSerie.primaryTitle, &ans->bestSerie.len, primaryTitle, flag);
             ans->bestSerie.score=scoreToUse;
-            ans->bestSerie.cantVotes=cantVotes;
+            ans->bestSerie.numVotes=numVotes;
         }
         ans->cantSeries++;
     }
 }
 //agrega un nodo a la lista de años en orden descendente o actualiza la informacion de un año.
 static TListYear addYearList(TListYear listYear,const TContent * content, int* flag){
-    if(listYear==NULL || listYear->year<content->startYear){
+    if(listYear==NULL || listYear->startYear < content->startYear){
         TListYear ans= calloc(1,sizeof (struct nodeYear));
         if(errno==ENOMEM){
         //no fue posible reservar memoria para el nodo. Se deja a la lista como estaba antes y se avisa con el flag
             *flag=ERR;
             return listYear;
         }
-        ans->year=content->startYear;
-        updateMoviesSeries(ans, content->primaryTitle, content->titleType, content->rating, content->numVotes, flag);
+        ans->startYear=content->startYear;
+        updateMoviesSeries(ans, content->primaryTitle, content->titleType, content->averageRating, content->numVotes, flag);
         if(*flag==ERR){
         //si hubo un error reservando memoria para las películas/series, se libera el nodo reservado anteriormente y se avisa con el flag
             free(ans);
@@ -179,14 +181,14 @@ static TListYear addYearList(TListYear listYear,const TContent * content, int* f
         ans->tail=listYear;
         return ans;
     }
-    if(listYear->year==content->startYear){
+    if(listYear->startYear == content->startYear){
         //si ya hay un nodo con esa informacion, agrego los datos de la nueva película/serie
         if(content->titleType==MOV) {
             for(int i=0;content->genre[i]!=NULL && *flag!=ERR;i++){
                 listYear->genres = addGenre(listYear->genres, content->genre[i], flag);
             }
         }
-        updateMoviesSeries(listYear, content->primaryTitle, content->titleType, content->rating, content->numVotes, flag);
+        updateMoviesSeries(listYear, content->primaryTitle, content->titleType, content->averageRating, content->numVotes, flag);
         return listYear;
     }
     listYear->tail= addYearList(listYear->tail,content,flag);
@@ -209,26 +211,26 @@ int hasNextYearsADT(yearsADT years){
 int hasNextGenresYearsADT(yearsADT years){
     return years->currGenre!=NULL;
 }
-tYear nextYearADT(yearsADT years){
+TYear nextYearADT(yearsADT years){
     assert(hasNextYearsADT(years));
-    tYear ans;
+    TYear ans;
     TListYear curr=years->currYears;
-    ans.startYear=curr->year;
-    ans.averageRatingMovie= SCORE_TO_DOUBLE(curr->bestMovie.score);
-    ans.averageRatingSerie= SCORE_TO_DOUBLE(curr->bestSerie.score);
+    ans.startYear=curr->startYear;
+    ans.averageRatingMovie= SCORE_TO_RATING(curr->bestMovie.score);
+    ans.averageRatingSerie= SCORE_TO_RATING(curr->bestSerie.score);
     ans.dimMovie=curr->cantMovies;
     ans.dimSerie=curr->cantSeries;
-    ans.numVotesMovie=curr->bestMovie.cantVotes;
-    ans.numVotesSerie=curr->bestSerie.cantVotes;
-    ans.primaryTitleMovie=curr->bestMovie.title;//el front no tiene que liberar/cambiar ese puntero
-    ans.primaryTitleSerie=curr->bestSerie.title;
+    ans.numVotesMovie=curr->bestMovie.numVotes;
+    ans.numVotesSerie=curr->bestSerie.numVotes;
+    ans.primaryTitleMovie=curr->bestMovie.primaryTitle;//el front no tiene que liberar/cambiar ese puntero
+    ans.primaryTitleSerie=curr->bestSerie.primaryTitle;
     //no avanza al siguiente para poder iterar por los generos de este año
     return ans;
 }
-tGenres nextGenresYearsADT(yearsADT years){
+TGenre nextGenresYearsADT(yearsADT years){
     assert(hasNextGenresYearsADT(years));
-    tGenres ans;
-    ans.genres=years->currGenre->genre;
+    TGenre ans;
+    ans.genre=years->currGenre->genre;
     ans.cant=years->currGenre->count;
     years->currGenre=years->currGenre->tail;
     return ans;

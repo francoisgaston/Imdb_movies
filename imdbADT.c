@@ -65,10 +65,10 @@ int hasNextYear(imdbADT imdb){
 int hasNextGenres(imdbADT imdb){
     return hasNextGenresYearsADT(imdb->years);
 }
-tYear nextYear(imdbADT imdb){
+TYear nextYear(imdbADT imdb){
     return nextYearADT(imdb->years);
 }
-tGenres nextGenres(imdbADT imdb){
+TGenre nextGenres(imdbADT imdb){
     return nextGenresYearsADT(imdb->years);
 }
 void goToNextYear(imdbADT imdb){
@@ -80,6 +80,6 @@ void toBeginRanking(imdbADT imdb){
 int hasNextRanking(imdbADT imdb){
     return hasNextRankingADT(imdb->ranking);
 }
-tQ4 nextRanking(imdbADT imdb){
+TRanking nextRanking(imdbADT imdb){
     return nextRankingADT(imdb->ranking);
 }

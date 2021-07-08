@@ -6,9 +6,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
+#include <math.h>
 #define MAX_RANKING 100
-//revisar como redondea en esta funcion
-#define SCORE(score) ((int)((score)*10))
+#define SCORE_TO_RATING(score) ((score)/10.0)
 /*
  * Estrucrura de la lista. Se uso una lista doble para tener el puntero a last y poder eliminar el ultimo y actualizar
  * el last en O(1). Esto le saca operaciones al caso donde hay que sacar de la lista a la pelícual con el menor ratitig
@@ -16,8 +16,8 @@
  */
 struct nodeRanking{
     int year;
-    char* title;
-    size_t cantVotes;
+    char* primaryTitle;
+    size_t numVotes;
     char score;
     struct nodeRanking* tail;
     struct nodeRanking* prev;
@@ -38,7 +38,7 @@ static void freeListRanking(TListRanking ranking){
         return;
     }
     freeListRanking(ranking->tail);
-    free(ranking->title);
+    free(ranking->primaryTitle);
     free(ranking);
 }
 void freeRankingADT(rankingADT ranking){
@@ -46,11 +46,14 @@ void freeRankingADT(rankingADT ranking){
     free(ranking);
 }
 //funcion para comparar 2 nodos en funcion de su raiting y su cantidad de votos en caso de que el primero sea el mismo
-static int compareRanking(char score1, long int cantVotes1, char score2, long int cantVotes2){
+static int compareRanking(char score1, long int numVotes1, char score2, long int numVotes2){
     if(score1==score2){
-        return cantVotes2-cantVotes1;
+        return numVotes2 - numVotes1;
     }
     return score2-score1;
+}
+static char score(double rating){
+    return (char)(floor(rating*10+0.5));
 }
 //saca el que tiene menor calificacion si ya no hay espacio y actualiza el puntero a last
 static void removeLast(rankingADT ranking){
@@ -63,24 +66,24 @@ static void removeLast(rankingADT ranking){
         ranking->ranking=NULL;//es un caso por si se cambia la cantidad máxima, no para este uso tampoco, seguro hay 100 antes.
     }
     ranking->last->tail=NULL;//arreglo la lista que queda
-    free(aux->title);
+    free(aux->primaryTitle);
     free(aux);
 }
 //agrega un nodo a la lista usando comapre para ordenar los nodos. Deja en *aux el nodo que agrego si este es el ultimo de la lista
 //usa de TContent solo los contenidos para el TAD, el resto no es resreferenciado
 static TListRanking addRankingList(TListRanking ranking, TListRanking prev,const TContent * content,TListRanking* aux,int* flag){
     int c;
-    if(ranking==NULL|| (c= compareRanking(ranking->score,ranking->cantVotes,SCORE(content->rating),content->numVotes))>0){//tengo que agregar el nuevo nodo
+    if(ranking==NULL|| (c= compareRanking(ranking->score, ranking->numVotes, score(content->averageRating), content->numVotes)) > 0){//tengo que agregar el nuevo nodo
         TListRanking ans= malloc(sizeof (struct nodeRanking));
         if(errno==ENOMEM){
         //si no se pudo reservar memoria para el nodo, se deja a la lista como estaba y se idica con el flag
             *flag=ERR;
             return ranking;
         }
-        ans->title= content->primaryTitle;//copia el puntero a title
+        ans->primaryTitle= content->primaryTitle;//copia el puntero a primaryTitle
         ans->year=content->startYear; //puede ser negativo, en el caso donde no pasan el año. Lo considero ahora porque no se ordenan por año
-        ans->cantVotes=content->numVotes;
-        ans->score= SCORE(content->rating);//se guardacomo entero para simplificar comparaciones
+        ans->numVotes=content->numVotes;
+        ans->score= score(content->averageRating);//se guardacomo entero para simplificar comparaciones
         ans->tail=ranking;
         ans->prev=prev;
         *flag=1; //tengo que sumar a la cantidad de elementos
@@ -99,7 +102,7 @@ static TListRanking addRankingList(TListRanking ranking, TListRanking prev,const
     return ranking;
 }
 int addRanking(rankingADT ranking, const TContent* content){
-    if(ranking->cant==MAX_RANKING && ranking->last->score> SCORE(content->rating)){
+    if(ranking->cant==MAX_RANKING && ranking->last->score> score(content->averageRating)){
         //si ya no hay espacio y seguro todos los que estan son mejores
         //si ranking->cant==MAX_RANKING, seguro last no es NULL
         free(content->primaryTitle);
@@ -129,14 +132,14 @@ void toBeginRankingADT(rankingADT ranking){
 int hasNextRankingADT(rankingADT ranking){
     return ranking->curr!=NULL;
 }
-tQ4 nextRankingADT(rankingADT ranking){
+TRanking nextRankingADT(rankingADT ranking){
     assert(hasNextRankingADT(ranking));
-    tQ4 ans;
+    TRanking ans;
     TListRanking curr=ranking->curr;
     ans.startYear=curr->year;
-    ans.averageRating=curr->score/10.0;
-    ans.numVotes=curr->cantVotes;
-    ans.primaryTitle=curr->title;
+    ans.averageRating= SCORE_TO_RATING(curr->score);
+    ans.numVotes=curr->numVotes;
+    ans.primaryTitle=curr->primaryTitle;
     ranking->curr=ranking->curr->tail;
     return ans;
 }

@@ -96,7 +96,7 @@ static int getTokens(char * line, TContent * aux){
                 copy_genres(aux,token);
                 break;
             case ARATE:
-                aux->rating = atof(token);
+                aux->averageRating = atof(token);
                 break;
             case NVOT:
                 aux->numVotes = atoi(token);
