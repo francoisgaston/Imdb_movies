@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "imdbADT.h"
 
-//SI TE LLEGA UN NULL PONGO UN GUION "-"
 
 void Query123(imdbADT Imdb);
 void Query4(imdbADT Imdb);
@@ -31,8 +30,10 @@ void Query123(imdbADT imdb){
         tYear aux = nextYear(imdb);
         fprintf(q1, "%d;%ld;%ld;\n", aux.startYear, aux.dimMovie, aux.dimSerie);
         fprintf(q3, "%d;%s;%ld;%.1f;%s;%ld;%.1f;\n", aux.startYear,
-                aux.primaryTitleMovie, aux.numVotesMovie, aux.averageRatingMovie,
-                aux.primaryTitleSerie, aux.numVotesSerie, aux.averageRatingSerie);
+                (aux.primaryTitleMovie!=NULL)? aux.primaryTitleMovie : "-",
+                aux.numVotesMovie, aux.averageRatingMovie,
+                (aux.primaryTitleSerie!=NULL)? aux.primaryTitleSerie : "-",
+                aux.numVotesSerie, aux.averageRatingSerie);
         while(hasNextGenres(imdb)){
             tGenres aux2 = nextGenres(imdb);
             fprintf(q2, "%d;%s;%ld;\n", aux.startYear, aux2.genres, aux2.cant);
