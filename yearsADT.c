@@ -136,7 +136,7 @@ static char* copy(char* from, unsigned int* len, const char* str,int* flag){
 static void updateMoviesSeries(TListYear ans, char* primaryTitle, char titleType, double averageRating, size_t numVotes, int* flag){
     char scoreToUse= score(averageRating);//lo voy a guardar como un entero
     if(titleType == MOV){
-        if(ans->bestMovie.primaryTitle == NULL || ans->bestMovie.score < scoreToUse){
+        if(ans->bestMovie.primaryTitle == NULL || ans->bestMovie.numVotes < numVotes){
             ans->bestMovie.primaryTitle= copy(ans->bestMovie.primaryTitle, &ans->bestMovie.len, primaryTitle, flag);
             //si hay un error en la funcion copy, se actualiza el flag correspondiente. Se continúa con la asignacion aca
             //porque ya hay memoria reservada y para evitar casos especiales
@@ -145,7 +145,7 @@ static void updateMoviesSeries(TListYear ans, char* primaryTitle, char titleType
         }
         ans->cantMovies++;
     }else{//es una serie, otra cosa no se manda al TAD para los queries necesarios
-        if(ans->bestSerie.primaryTitle == NULL || ans->bestSerie.score < scoreToUse){
+        if(ans->bestSerie.primaryTitle == NULL || ans->bestSerie.numVotes < numVotes){
             ans->bestSerie.primaryTitle= copy(ans->bestSerie.primaryTitle, &ans->bestSerie.len, primaryTitle, flag);
             ans->bestSerie.score=scoreToUse;
             ans->bestSerie.numVotes=numVotes;
