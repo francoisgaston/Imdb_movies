@@ -38,7 +38,7 @@ static char * lineToTokens(char * line, char c, size_t * pos){
     for(i = *pos; line[i] != c && line[i] != 0 ; i++){
         if(newDim % BLOCK == 0){
             ans = realloc(ans, (newDim + BLOCK) * sizeof(char));
-            checkMemory(ans);
+            checkMemory(ans);//no funciona
         }
         ans[newDim++] = line[i];
     }
@@ -103,8 +103,7 @@ static void copy_genres(TContent * aux , char * line){
             aux->genre = realloc(aux->genre, (BLOCK + i) * sizeof(char *));
             checkMemGenre(aux,BLOCK+i);
         }
-        aux->genre[i] = copy(token);
-        free(token);
+        aux->genre[i] = token;
     }
     aux->genre = realloc(aux->genre, (i+1) * sizeof(char *));
     checkMemGenre(aux,i+1);
@@ -146,11 +145,12 @@ static int getTokens(char * line, TContent * aux){
                     checkMemGenre(aux,1);
                 }
                 else{
-                    copy_genres(aux,token);
+                    copy_genres(aux,token);//tendriamos que hacer un free aca
                 }
                 break;
             case ARATE:
-                aux->rating = atof(token);
+            //mandar 0 si es \N
+                aux->averageRating = atof(token);
                 break;
             case NVOT:
                 aux->numVotes = atoi(token);
@@ -192,10 +192,10 @@ void readInput(int argQty, char * file[], imdbADT imdb){
                 fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
                 exit(1);
             }
+            free(aux->genre);
         }
     }
     free(s);
-    free(aux->genre);
     free(aux);
     fclose(text);
 }
