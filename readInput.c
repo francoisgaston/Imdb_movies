@@ -7,7 +7,7 @@
 enum content{PTITLE=1, SYEAR, GENRE = 4, ARATE, NVOT};
 
 //VA O NO VA?
-void checkMemory(void * text){
+static void checkMemory(void * text){
     if(errno == ENOMEM){
         free(text);
         fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
@@ -15,8 +15,20 @@ void checkMemory(void * text){
     }
 }
 
+static void checkMemGenre(TContent * aux, int idx){
+    if(errno == ENOMEM) {
+        for (int i = 0; i < idx; i++)
+            free(aux->genre[i]);
+        free(aux->genre);
+        free(aux->primaryTitle);
+        free(aux);
+        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+        exit(1);
+    }
+}
+
 //QUITAR DESAUX
-char * getLine(FILE * text) {
+static char * getLine(FILE * text) {
     unsigned int i = 0;
     int c;
     char * desc = NULL;
@@ -41,9 +53,26 @@ static char * copy(char * source){
     strcpy(ans, source);
     return ans;
 }
+
+static void copy_genres(TContent * aux , char * line){
+    aux->genre = NULL;
+    char * token = strtok(line, ",");
+    int i = 0;
+    for(; token != NULL ; i++,token = strtok(NULL, ",")){
+        if((i % BLOCK) == 0) {
+            aux->genre = realloc(aux->genre, (BLOCK + i) * sizeof(char *));
+            checkMemGenre(aux->genre,BLOCK+i);
+        }
+        aux->genre[i] = copy(token);
+    }
+    aux->genre = realloc(aux->genre, (i+1) * sizeof(char *));
+    checkMemGenre(aux->genre,i+1);
+    aux->genre[i] = NULL;
+}
+
 //VERIFICAR EL /N QUE PUEDE APARECER PREGUNTAR.
 //enum para sumar punticos.
-int getTokens(char * line, TContent * aux){
+static int getTokens(char * line, TContent * aux){
     char * token = strtok(line, ";");
     if(!strcmp(token, "movie")){
         aux->titleType = MOV;
@@ -59,12 +88,12 @@ int getTokens(char * line, TContent * aux){
                 aux->primaryTitle = copy(token);
                 break;
             case SYEAR:
-                aux->startYear = atoi(token);
+                aux->startYear = (!strcmp(token, "\\N")) ? -1 : atoi(token);
                 counter++;
                 strtok(NULL, ";"); //Porque sino me quedo en el TOKEN de FIN DE ANIO
                 break;  //agregar aca el INVALID
             case GENRE: //si falla el malloc del genero liberar los demas
-                aux->genre = copy(token);
+                copy_genres(aux,token);
                 break;
             case ARATE:
                 aux->rating = atof(token);
@@ -78,11 +107,12 @@ int getTokens(char * line, TContent * aux){
     }
     return TRUE;
 }
+
 //PASAR SOLO UNA ESTRUCTURA
 //NO LIBERAR LOS CHAR * DE LA ESTRUCTURA
 void readInput(int argQty, char * file[],imdbADT imdb){
     if(argQty != 2){
-        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+        fprintf(stderr, "CANTIDAD DE ARGUMENTOS INVALIDA!");
         exit(1);
     }
     FILE * text = fopen(file[1], "r");  

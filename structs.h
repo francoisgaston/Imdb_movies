@@ -21,7 +21,7 @@ typedef struct TContent{
     char titleType;
     char* primaryTitle;
     int startYear;
-    char* genre;
+    char ** genre;
     double rating;
     size_t numVotes;
 }TContent;
