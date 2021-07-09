@@ -8,10 +8,6 @@ EXE_FILE = imdb
 
 COMPILER = gcc
 
-TEST_FILE = test.csv
-
-DATASET_FILE = imdbv3.csv
-
 RUN = @$(COMPILER) $(FLAGS) $(FILES) -o $(EXE_FILE) $(LIBRARIES)
 
 imdb:
