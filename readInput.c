@@ -4,12 +4,12 @@
 #include <errno.h>
 #include "imdbADT.h"
 
-enum content{PTITLE=1, SYEAR, GENRE = 4, ARATE, NVOT};
+#define CONTENTS 7
 
 static int checkMem(void* mem, int* ffree){
     if(mem==NULL || errno==ENOMEM){
         free(mem);
-        //fprintf(stderr, "NO HAY MEMORIA DISPONIBLE"); Esto creo que no deberia ir aca
+        //fprintf(stderr, "NO HAY MEMORIA DISPONIBLE\n"); Esto creo que no deberia ir aca
         *ffree=ERR;
         return 0;
     }
@@ -145,52 +145,52 @@ static void copyGenres(TContent * aux , char * line, int* ffree){//revisar
 ** Además guarda cada token en su correspondiente campo presente en la estructura que
 ** almacena toda la información de la película/serie.
 */
+
+static void fPtitle (char * token, TContent * aux, int * ffree){
+    aux->primaryTitle = copy(token,ffree);
+    checkMemGenre(aux, aux->primaryTitle,0,ffree);
+}
+static void fYear(char * token, TContent * aux, int * ffree){
+    aux->startYear = (!strcmp(token, "\\N")) ? INVALID : atoi(token);
+}
+
+static void pass(char * token, TContent * aux, int * ffree){
+	return;
+}
+
+static void fGenre(char * token, TContent * aux, int * ffree){
+    if(aux->titleType == SER || !strcmp(token,"\\N")){
+        aux->genre = calloc(1,sizeof(char *));
+        checkMemGenre(aux,aux->genre,1,ffree); //si se reservó bien, sigue. Si no se libera toda la estructura.
+    }
+    else{
+        copyGenres(aux, token,ffree); //si hubo error, libera toda la estructura
+    }
+}
+
+static void fRate(char * token, TContent * aux, int * ffree){
+    aux->averageRating = (!strcmp(token, "\\N")) ? 0.0 : atof(token);
+}
+
+static void fVot(char * token, TContent * aux, int * ffree){
+    aux->numVotes = (!strcmp(token, "\\N")) ? 0 : atoi(token);
+}
+
+
 static int getTokens(char * line, TContent * aux, int* ffree){
-    //ESTO FUNCION PERO DEBEMOS PROBAR QUE PASA SI EN LOS
-    //STRTOK DE ABAJO SE PONE NULL O EL MISMO LINE.
+    void (*procesadores[CONTENTS]) (char *, TContent *, int *)={fPtitle, fYear, pass, fGenre, fRate, fVot, pass};
     char * token = strtok(line, ";");
-    if(!strcmp(token, "movie")){
-        aux->titleType = MOV;
-    }else if(!strcmp(token, "tvSeries")){
-        aux->titleType = SER;
-    }else{
-        return FALSE;
-    }
-    char counter = 0;
-    while((token = strtok(NULL, ";")) != NULL && *ffree!=ERR){
-        switch(++counter){
-            case PTITLE:
-                aux->primaryTitle = copy(token,ffree);
-                //en este caso tambíen debería liberar todos lo que tiene la estructura para ser consistentes
-                checkMemGenre(aux, aux->primaryTitle,0,ffree); //si ffree es ERR, libera todo
-                break;
-            case SYEAR:
-                aux->startYear = (!strcmp(token, "\\N")) ? INVALID : atoi(token);
-                counter++;
-                strtok(NULL, ";"); //Porque sino me quedo en el TOKEN de FIN DE ANIO
-                break;  //agregar aca el INVALID
-            case GENRE: //si falla el malloc del genero liberar los demas
-                if(aux->titleType == SER || !strcmp(token,"\\N")){
-                    aux->genre = calloc(1,sizeof(char *));
-                    checkMemGenre(aux,aux->genre,1,ffree); //si se reservó bien, sigue. Si no se libera toda la estructura.
-                }
-                else{
-                    copyGenres(aux, token,ffree); //si hubo error, libera toda la estructura
-                }
-                break;
-            case ARATE:
-            //mandar 0 si es \N
-                aux->averageRating = atof(token);
-                break;
-            case NVOT:
-                aux->numVotes = atoi(token);
-                return TRUE;
-            default:
-                break;
-        }
-    }
+    if(!strcmp(token, "movie"))
+    	aux->titleType = MOV;
+    else if(!strcmp(token, "tvSeries"))
+    	aux->titleType = SER;
+    else
+        return FALSE; 
+    for(int i=0; (token = strtok(NULL,";"))!=NULL && *ffree!=ERR; i++)
+            procesadores[i] (token, aux, ffree);
     return TRUE;
 }
+
 
 //PASAR SOLO UNA ESTRUCTURA
 //NO LIBERAR LOS CHAR * DE LA ESTRUCTURA
@@ -201,7 +201,7 @@ static int getTokens(char * line, TContent * aux, int* ffree){
 */
 void readInput(int argQty, char * file[], imdbADT imdb){
     if(argQty != 2){ //Verifica si la cantidad de argumentos al ejecutar es correcta.
-        fprintf(stderr, "CANTIDAD DE ARGUMENTOS INVALIDA!");
+        fprintf(stderr, "CANTIDAD DE ARGUMENTOS INVALIDA!\n");
         exit(1);
     }
     FILE * text = fopen(file[1], "r"); //Se accede a los datos del archivo.
@@ -210,7 +210,7 @@ void readInput(int argQty, char * file[], imdbADT imdb){
     int ffree=OK;
     if( !checkMem(aux,&ffree) ){//Chequea memoria disponible.
         freeImdb(imdb);
-        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE\n");
         exit(1);
     } 
     unsigned int dim = 0; //Variable que guarda la dimension de cada linea actual que se esta procesando.
@@ -229,7 +229,7 @@ void readInput(int argQty, char * file[], imdbADT imdb){
                     free(aux->genre);
                     free(aux);
                     free(s);
-                    fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+                    fprintf(stderr, "NO HAY MEMORIA DISPONIBLE\n");
                     exit(1);
                 }
                 free(aux->genre);
@@ -240,7 +240,7 @@ void readInput(int argQty, char * file[], imdbADT imdb){
     free(aux);
     if(ffree==ERR){//la estructura ya fue liberada
         freeImdb(imdb);
-        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE\n");
         exit(1);
     }
     fclose(text);

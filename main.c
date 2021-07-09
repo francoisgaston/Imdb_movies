@@ -5,7 +5,7 @@
 int main(int argQty, char * file[]) {
     imdbADT imdb = newImdb();
     if(imdb == NULL){
-        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE\n");
         exit(1);
     }
     readInput(argQty, file, imdb);
