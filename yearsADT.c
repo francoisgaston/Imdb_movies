@@ -112,7 +112,7 @@ static char* copy(char* from, unsigned int* len, const char* str,int* flag){
     unsigned int indexAns;
     for(indexAns=0;*str!='\0';indexAns++,str++){
         if(indexAns==cap){
-            ans= realloc(ans,(indexAns+BLOQUE)*sizeof (char));
+            ans= realloc(ans,(indexAns+BLOQUE));
             if(!checkMem(ans,flag)){
                 return NULL;
             }

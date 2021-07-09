@@ -7,7 +7,7 @@ static void Query123(imdbADT imdb){
     FILE * q2 = fopen("./query2.csv", "wt");
     FILE * q3 = fopen("./query3.csv", "wt");
     if (q1 == NULL || q2 == NULL || q3 == NULL) {
-        printf("No se pudo crear un archivo\n");
+        fprintf(stderr,"No se pudo crear un archivo\n");
         return;
     }
     //imprimo headers
@@ -38,7 +38,7 @@ static void Query123(imdbADT imdb){
 static void Query4(imdbADT Imdb) {
     FILE * archivo = fopen("./query4.csv", "wt");
     if (archivo == NULL) {
-        printf("No se pudo crear un archivo\n");
+        fprintf(stderr,"No se pudo crear un archivo\n");
         return;
     }
     fprintf(archivo, "startYear;primaryTitle;numVotes;averageRating\n");

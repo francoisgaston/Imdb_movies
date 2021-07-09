@@ -20,16 +20,16 @@ void freeImdb(imdbADT imdb){
 
 imdbADT newImdb(void){//libera automáticamente si no pudo reservar algo, y devuelve NULL
     imdbADT ans= calloc(1,sizeof(struct imdbCDT));
-    if(errno==ENOMEM){
+    if(ans == NULL || errno==ENOMEM){
         return NULL;
     }
     ans->years=newYearsADT();
-    if(errno==ENOMEM){
+    if(ans->years == NULL || errno==ENOMEM){
         free(ans);
         return NULL;
     }
     ans->ranking=newRankingADT();
-    if(errno==ENOMEM){
+    if(ans->ranking == NULL || errno==ENOMEM){
         freeYearsADT(ans->years);
         free(ans);
         return NULL;
