@@ -172,6 +172,7 @@ static TListYear addYearList(TListYear listYear,const TContent * content, int* f
         //si el flag queda en ERR despues de esta funcion, igualmente se sigue con la lista de años y despues el front se encarga de liberar la estructura
         //lo que fue reservado antes va a poder liberarse, solo no se pudo reservar para la lista de generos
         //y en ese caso ya se arreglo como para que los otros nodos queden como antes para liberarse con freeYearsADT
+        //si el usuario no libera la estructura luego de un error, va a quedar la información del nodo que se pudo almacenar (por ejemplo, el año)
         ans->tail=listYear;
         return ans;
     }

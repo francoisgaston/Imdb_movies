@@ -11,6 +11,8 @@
  *  con al menos cien mil votos y la información de cada año, donde se puede iterar descendentemente por ellos y obtener
  *  la mejor película, la mejor serie, la cantidad de series, la cantidad de películas y una lista donde se cuenta la cantidad de
  *  películas de cada género, a la cual se puede acceder mediante otro iterador.
+ *  En el caso de haber un error reservando memoria, deja en el TAD los datos agregados hasta el momento (incluyendo por ejemplo un año
+ *  sin la mejor película/serie) y devuelve ERR en add.
  */
 typedef struct imdbCDT* imdbADT;
 /*
@@ -19,7 +21,7 @@ typedef struct imdbCDT* imdbADT;
 imdbADT newImdb(void);
 /*
  * Agrega la informacion de una película o serie al TAD. Recibe un puntero a una estructura TContent
- * (ver nota abajo sobre las estructuras de entrada/salida)
+ * (ver nota abajo sobre las estructuras de entrada/salida). Devuelve ERR si hay un error reservando memoria
  */
 int add(imdbADT imdb, const TContent* content);
 /*

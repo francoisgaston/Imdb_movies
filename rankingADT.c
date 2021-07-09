@@ -57,15 +57,15 @@ static char score(double rating){
 }
 //saca el que tiene menor calificacion si ya no hay espacio y actualiza el puntero a last
 static void removeLast(rankingADT ranking){
-    if(ranking->last==NULL){//no se debería llamar a esto en ejecucion, se puede sacar despues
+    if(ranking->last==NULL){
         return;
     }
     TListRanking aux=ranking->last;
-    ranking->last=ranking->last->prev;//dejo last uno antes
-    if(ranking->last==NULL){//no quedan más elementos
-        ranking->ranking=NULL;//es un caso por si se cambia la cantidad máxima, no para este uso tampoco, seguro hay 100 antes.
+    ranking->last=ranking->last->prev;//deja last uno antes
+    if(ranking->last==NULL){//no quedan más elementos, en el caso donde MAX_RANKING es 1
+        ranking->ranking=NULL;//es un caso por si se cambia la cantidad máxima, no para este uso pues seguro hay 100 antes.
     }
-    ranking->last->tail=NULL;//arreglo la lista que queda
+    ranking->last->tail=NULL;//arregla la lista que queda
     free(aux->primaryTitle);
     free(aux);
 }
@@ -75,26 +75,27 @@ static TListRanking addRankingList(TListRanking ranking, TListRanking prev,const
     int c;
     if(ranking==NULL|| (c= compareRanking(ranking->score, ranking->numVotes, score(content->averageRating), content->numVotes)) > 0){//tengo que agregar el nuevo nodo
         TListRanking ans= malloc(sizeof (struct nodeRanking));
-        if(errno==ENOMEM){
+        if(ans==NULL || errno==ENOMEM){
         //si no se pudo reservar memoria para el nodo, se deja a la lista como estaba y se idica con el flag
+            free(ans);
             *flag=ERR;
             return ranking;
         }
         ans->primaryTitle= content->primaryTitle;//copia el puntero a primaryTitle
         ans->year=content->startYear; //puede ser negativo, en el caso donde no pasan el año. Lo considero ahora porque no se ordenan por año
         ans->numVotes=content->numVotes;
-        ans->score= score(content->averageRating);//se guardacomo entero para simplificar comparaciones
+        ans->score= score(content->averageRating);//se guarda como entero para simplificar comparaciones
         ans->tail=ranking;
         ans->prev=prev;
-        *flag=1; //tengo que sumar a la cantidad de elementos
-        if(ranking==NULL){//es el ultimo nodo en la lista, me lo guardo por si lo tengo que eliminar
+        *flag=1; //tiene que sumar a la cantidad de elementos
+        if(ranking==NULL){//es el ultimo nodo en la lista, lo guarda por si se tiene que eliminar
             *aux=ans;
-        }else{
+        }else{//arregla el anterior del próximo nodo
             ranking->prev=ans;
         }
         return ans;
     }
-    if(c==0){//no deberia haber repetidos, pero por las dudas dejo el caso
+    if(c==0){//no deberia haber repetidos, pero por las dudas dejo el caso. Se queda la película que se envió antes al TAD, no se agrega repetida
         free(content->primaryTitle);//no se usa el titulo que pasaron
         return ranking;
     }
@@ -102,20 +103,20 @@ static TListRanking addRankingList(TListRanking ranking, TListRanking prev,const
     return ranking;
 }
 int addRanking(rankingADT ranking, const TContent* content){
-    if(ranking->cant==MAX_RANKING && ranking->last->score> score(content->averageRating)){
-        //si ya no hay espacio y seguro todos los que estan son mejores
-        //si ranking->cant==MAX_RANKING, seguro last no es NULL
+    if(ranking->cant==MAX_RANKING && compareRanking(score(content->averageRating),content->numVotes,ranking->last->score,ranking->last->numVotes)>0){
+        //si ya no hay espacio y seguro todos los que estan son mejores (pues el nuevo iría despúes del ultimo nodo, que es el peor)
+        //si ranking->cant==MAX_RANKING, seguro last no es NULL (no tiene sentido que MAX_RANKING sea 0)
         free(content->primaryTitle);//no se va a usar el título
         return OK; //ni intento agregarlo, seguro lo voy a sacar despues. no hubo error igual
     }
-    TListRanking aux=NULL; //para ver si tengo que cambiar el last
+    TListRanking aux=NULL; //para ver si tiene que cambiar el last
     int flag=0;
     ranking->ranking = addRankingList(ranking->ranking,NULL, content,&aux,&flag);
     if(flag==ERR){
     //Si hubo un error al agregar el nodo, se avisa al front que se debe liberar la estructura y se deja como estaba antes de intentar agregarlo
         return ERR;
     }
-    if(aux!=NULL){//encontre un nuevo ultimo nodo
+    if(aux!=NULL){//encontro un nuevo ultimo nodo
         ranking->last=aux;
     }
     ranking->cant+=flag;//ya sé que es o 0 o 1
