@@ -71,6 +71,7 @@ static char * getLine(FILE * text, char * dest, unsigned int * dim, int * ffree)
     char* auxp;
     int c= fgetc(text);
     if(c==EOF){
+        free(dest);
         return NULL;
     }
     while ( c != '\n' && c != EOF) {
