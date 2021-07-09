@@ -1,5 +1,5 @@
 //
-// Created by Jose Menta on 06/07/2021.
+//
 //
 
 #ifndef TPE_FINAL_PI_YEARSADT_H
@@ -7,7 +7,8 @@
 #include "structs.h"
 /*
  * yearsADT es una estructura que almacena películas y series en orden descendente por año, donde para cada uno guarda
- * la mejor película, la mejor serie, la cantidad de películas, la cantidad de series y una lista con la cantidad de películas de cada género.
+ * la película y serie con mayor cantidad de votos, la cantidad de películas, la cantidad de series y una lista con la
+ * cantidad de películas de cada género.
  */
 typedef struct yearsCDT* yearsADT;
 /*
@@ -39,8 +40,8 @@ int hasNextYearsADT(yearsADT years);
 int hasNextGenresYearsADT(yearsADT years);
 /*
  * Devuelve una estructura de tipo TYear, donde la información será la del iterador por años.
- * A diferencia de otras funciones similares,esta funcion no mueve el iterador al siguiente elemento, ya que quizás el usuario
- * quiere iterar por los elementos de la lista de géneros de ese año.
+ * A diferencia de otras funciones similares,esta funcion no mueve el iterador al siguiente elemento, para que el usuario
+ * pueda iterar por los elementos de la lista de géneros de ese año.
  */
 TYear nextYearADT(yearsADT years);
 /*

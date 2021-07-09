@@ -1,5 +1,5 @@
 //
-// Created by Jose Menta on 06/07/2021.
+//
 //
 
 #ifndef TPE_FINAL_PI_RANKINGADT_H
@@ -21,8 +21,7 @@ void freeRankingADT(rankingADT ranking);
 /*
  * Agrega una película al ranking en el caso de estar dentro de las mejores 100.
  * Recibe un puntero a una estructura TContent de la cual solo utiliza el título, en año, la cantidad de votos y el raiting. El usuario debe
- * liberar la estructura en caso de ser necesario, pero no el char* con el título, ya que en el TAD se almacena la direccion en la estructura,
- * no se copia el string.
+ * liberar la estructura en caso de ser necesario, pero no el char* con el título, ya que en el TAD se almacena la direccion en la estructura.
  */
 int addRanking(rankingADT ranking, const TContent * content);
 /*

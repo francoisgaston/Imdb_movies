@@ -1,5 +1,5 @@
 //
-// Created by Jose Menta on 06/07/2021.
+//
 //
 
 #include "rankingADT.h"
@@ -10,8 +10,8 @@
 #define MAX_RANKING 100
 #define SCORE_TO_RATING(score) ((score)/10.0)
 /*
- * Estrucrura de la lista. Se uso una lista doble para tener el puntero a last y poder eliminar el ultimo y actualizar
- * el last en O(1). Esto le saca operaciones al caso donde hay que sacar de la lista a la pelícual con el menor ratitig
+ * Estrucrura de la lista. Se usa una lista doble para tener el puntero a last y poder eliminar el ultimo y actualizar
+ * el last de manera eficiente. Esto le saca operaciones al caso donde hay que sacar de la lista a la pelícual con el menor ratitig
  * por ser más de 100
  */
 struct nodeRanking{
@@ -45,7 +45,7 @@ void freeRankingADT(rankingADT ranking){
     freeListRanking(ranking->ranking);
     free(ranking);
 }
-//funcion para comparar 2 nodos en funcion de su raiting y su cantidad de votos en caso de que el primero sea el mismo
+//funcion para comparar 2 nodos en funcion de su rating y su cantidad de votos en caso de que el primero sea el mismo
 static int compareRanking(char score1, long int numVotes1, char score2, long int numVotes2){
     if(score1==score2){
         return numVotes2 - numVotes1;
@@ -70,7 +70,7 @@ static void removeLast(rankingADT ranking){
     free(aux);
 }
 //agrega un nodo a la lista usando comapre para ordenar los nodos. Deja en *aux el nodo que agrego si este es el ultimo de la lista
-//usa de TContent solo los contenidos para el TAD, el resto no es resreferenciado
+//usa de TContent solo los contenidos para el TAD, el resto no es desreferenciado.
 static TListRanking addRankingList(TListRanking ranking, TListRanking prev,const TContent * content,TListRanking* aux,int* flag){
     int c;
     if(ranking==NULL|| (c= compareRanking(ranking->score, ranking->numVotes, score(content->averageRating), content->numVotes)) > 0){//tengo que agregar el nuevo nodo
@@ -82,7 +82,7 @@ static TListRanking addRankingList(TListRanking ranking, TListRanking prev,const
             return ranking;
         }
         ans->primaryTitle= content->primaryTitle;//copia el puntero a primaryTitle
-        ans->year=content->startYear; //puede ser negativo, en el caso donde no pasan el año. Lo considero ahora porque no se ordenan por año
+        ans->year=content->startYear;
         ans->numVotes=content->numVotes;
         ans->score= score(content->averageRating);//se guarda como entero para simplificar comparaciones
         ans->tail=ranking;
@@ -107,7 +107,7 @@ int addRanking(rankingADT ranking, const TContent* content){
         //si ya no hay espacio y seguro todos los que estan son mejores (pues el nuevo iría despúes del ultimo nodo, que es el peor)
         //si ranking->cant==MAX_RANKING, seguro last no es NULL (no tiene sentido que MAX_RANKING sea 0)
         free(content->primaryTitle);//no se va a usar el título
-        return OK; //ni intento agregarlo, seguro lo voy a sacar despues. no hubo error igual
+        return OK;
     }
     TListRanking aux=NULL; //para ver si tiene que cambiar el last
     int flag=0;

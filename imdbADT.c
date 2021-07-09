@@ -1,7 +1,6 @@
 //
-// Created by Jose Menta on 05/07/2021.
 //
-//hay que arreglar como termina si hay error en malloc. Ver de separar el TAD en 2 distintos para que quede más manejable
+//
 #include "imdbADT.h"
 #include "yearsADT.h"
 #include "rankingADT.h"
@@ -39,14 +38,15 @@ imdbADT newImdb(void){//libera automáticamente si no pudo reservar algo, y devu
 int add(imdbADT imdb, const TContent*  content){
     int flag1=OK, flag2=OK;
     if(content->startYear!=INVALID){
-    //como en el caso del yearsADT necesito tener un año, si en el csv no había un año no lo agrego como dato
+    //como en el caso del yearsADT necesita tener un año, si en el csv no había un año no lo agrega como dato
         flag1=addYear(imdb->years, content);
     }else{
-        for(int i=0;content->genre[i]!=NULL;i++){ //se tienen que liberar los géneros, ya que no se utilizarán (en el caso de las películas, para las series no se deberían pasar)
+        for(int i=0;content->genre[i]!=NULL;i++){
+        //se tienen que liberar los géneros, ya que no se utilizarán
             free(content->genre[i]);
         }
     }
-    //si se pudo agregar en yearsADT, intento agregarlo en rankingADT
+    //si se pudo agregar en yearsADT, intenta agregarlo en rankingADT
    if ( flag1!= ERR && content->titleType == MOV && content->numVotes >= MIN_VOTES) {//si cumple con los requisitos
         flag2=addRanking(imdb->ranking, content);//ranking se va a quedar o liberar el char* que manda el front
     }else{

@@ -1,5 +1,5 @@
 //
-// Created by Jose Menta on 05/07/2021.
+//
 //
 
 #ifndef TPE_FINAL_PI_IMDBADT_H
@@ -9,10 +9,10 @@
 /*
  * imdbADT es un TAD que permite guardar la información de películas y series para luego poder obtener las 100 mejores películas
  *  con al menos cien mil votos y la información de cada año, donde se puede iterar descendentemente por ellos y obtener
- *  la mejor película, la mejor serie, la cantidad de series, la cantidad de películas y una lista donde se cuenta la cantidad de
+ *  la película y serie con mayor cantidad de votos, la cantidad de series, la cantidad de películas y una lista donde se cuenta la cantidad de
  *  películas de cada género, a la cual se puede acceder mediante otro iterador.
  *  En el caso de haber un error reservando memoria, deja en el TAD los datos agregados hasta el momento (incluyendo por ejemplo un año
- *  sin la mejor película/serie) y devuelve ERR en add.
+ *  sin la mejor película/serie) y devuelve ERR en add (constante definida en structs.h)
  */
 typedef struct imdbCDT* imdbADT;
 /*
@@ -21,7 +21,7 @@ typedef struct imdbCDT* imdbADT;
 imdbADT newImdb(void);
 /*
  * Agrega la informacion de una película o serie al TAD. Recibe un puntero a una estructura TContent
- * (ver nota abajo sobre las estructuras de entrada/salida). Devuelve ERR si hay un error reservando memoria
+ * (ver nota sobre las estructuras de entrada/salida). Devuelve ERR si hay un error reservando memoria
  */
 int add(imdbADT imdb, const TContent* content);
 /*
@@ -72,18 +72,19 @@ TRanking nextRanking(imdbADT imdb);
  * Entrada:
  * El puntero a TContent debe ser administrado por el usuario, el TAD no lo modificará. Para ser almacenado junto con la informacion de cada año,
  * el campo startYear debe ser positivo, si no hay un valor en la base de datos debe ingresarse INVALID. El vector de char* con los géneros del
- * contenido debe terminar en NULL y ser administrado por el usuario. Si no hay un título para el contenido, primaryTitle debe tener NULL.
+ * contenido debe terminar en NULL y ser administrado por el usuario.
  * Los char* de la estructura, tanto primaryTitle como cada género en genre deben estar en una zona de memoria dinámica y NO deben ser
- * modificados o liberados una vez que son enviados al TAD, ya que se guarda una copia del puntero.
- * El campo titleType debe completarse con las constantes MOV o SER en caso de ser una película o una serie, no se deben enviar al TAD datos con otro tipo.
+ * modificados o liberados una vez que son enviados al TAD, ya que se guarda una copia del puntero. No se deben pasar los géneros si se trata de una serie,
+ * se debe pasar un vector de char* cuyo unico elemento sea NULL.
+ * El campo titleType debe completarse con las constantes MOV o SER en caso de ser una película o una serie. No se deben enviar al TAD datos con otro tipo.
  * El raitig debe ser un valor entre 0 y 10 con una posicion decimal, no se verificará en el TAD si se pasan valores incorrectos.
  * Salida:
  * TYear: startYear se completa con un entero positivo, nunca con INVALID. En caso de no existir en ese año una mejor película o serie,
  * se deja su primaryTitle en NULL y tanto numVotes como averageRaiting en 0. Los punteros que se envían en primaryTitle no deben ser modificados o liberados
  * por el usuario, ya que los mismos se utilizan en el backend.
  * TGenre: el campo genre se completa con un char* con el nombre del género, que no debe ser modificado o liberado por el usuario.
- * TQ4: El campo startYear tendrá el mismo valor que se pasó con la película cuando se cargó: un entero positivo o INVALID. PrimaryTitle cumple la misma
- * regla: tendra un char* que no debe ser liberado o modificado, o NULL. AverageRating tendrá el módulo y signo del dato que se cargó, no se verificará que
+ * TRanking: El campo startYear tendrá el mismo valor que se pasó con la película cuando se cargó: un entero positivo o INVALID. PrimaryTitle
+ * tendra un char* que no debe ser liberado o modificado. AverageRating tendrá el módulo y signo del dato que se cargó, no se verificará que
  * sea positivo.
  */
 #endif //TPE_FINAL_PI_IMDBADT_H
