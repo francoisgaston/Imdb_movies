@@ -17,7 +17,7 @@ static void checkMemory(void * text){
 static int checkMem(void* mem, int* ffree){
     if(mem==NULL || errno==ENOMEM){
         free(mem);
-        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+        //fprintf(stderr, "NO HAY MEMORIA DISPONIBLE"); Esto creo que no deberia ir aca
         *ffree=ERR;
         return 0;
     }
@@ -26,38 +26,46 @@ static int checkMem(void* mem, int* ffree){
 /* Funcion que verifica memoria disponible para el char ** genre.
 ** Además libera la estructura antes de abortar.
 */
-static void checkMemGenre(TContent * aux, int idx){
-    if( aux==NULL || errno == ENOMEM) {
+static int checkMemGenre(TContent * aux, void* auxp, int idx, int* ffree){
+    if( auxp==NULL || errno == ENOMEM || *ffree==ERR) {
         for (int i = 0; i < idx; i++)
             free(aux->genre[i]);
         free(aux->genre);
         free(aux->primaryTitle);
-        free(aux);
-        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
-        exit(1);
+        //free(aux); creo que no debería estar, poruqe seguro se libera antes de terminar la ejecución
+        *ffree=ERR;
+        return 0;
     }
+    return 1;
 }
 /* Funcion que se encarga de obtener los tokens del campo genero.
 **
 */
+//funcion con sugerencias para el caso donde se queda sin memoria
 static char * lineToTokens(const char * line, char c, int * pos, int* ffree){//despues
     int i, newDim = 0;
     char * ans = NULL;
-    for(i = *pos; line[i] != c && line[i] != 0 ; i++){
+    char* auxp;
+    for(i = *pos; line[i] != c && line[i] != 0 && *ffree!=ERR ; i++){
         if(newDim % BLOCK == 0){
-            ans = realloc(ans, (newDim + BLOCK) * sizeof(char));
-            if(!checkMem(ans,ffree)){
+        //creo que deberiamos hacer algo asi en todos los realloc
+            auxp = realloc(ans, (newDim + BLOCK) * sizeof(char));
+            if(!checkMem(auxp,ffree)) {
+                free(ans);//se libera lo que tenia hasta el momento para no tener leaks
                 return NULL;
             }
+            ans=auxp;
         }
         ans[newDim++] = line[i];
     }
     if(ans != NULL){
         *pos = line[i] == c ? i+1 : i ;
-        ans = realloc(ans, (newDim+1) * sizeof(char));
-        if(!checkMem(ans,ffree)){
+        auxp = realloc(ans, (newDim+1) * sizeof(char));
+        if(!checkMem(auxp,ffree)){
+            free(ans);
             return NULL;
         }
+        ans=auxp;//pudo reservar bien la memoria
         ans[newDim] = 0;
     }
     return ans;
@@ -69,22 +77,29 @@ static char * lineToTokens(const char * line, char c, int * pos, int* ffree){//d
 static char * getLine(FILE * text, char * dest, unsigned int * dim, int * ffree) {
     char * ans = dest;
     unsigned int i = 0 , idx = *dim;
+    char* auxp;
     int c= fgetc(text);
     if(c==EOF){
         return NULL;
     }
     while ( c != '\n' && c != EOF) {
         if (i == idx) {
-            ans = realloc(ans, (i + BLOCK) * sizeof(char));
-            checkMem(ans,ffree);
+            auxp = realloc(ans, (i + BLOCK) * sizeof(char));
+            if(!checkMem(auxp,ffree)){
+                return ans;//lo que tenía ans se libera en la funcion que lo llama
+            }
+            ans=auxp;//se amplió bien la memoria
             idx += BLOCK;
         }
         ans[i++] = c;
         c= fgetc(text);
     }
     //si hay \n despues de la ultima linea con informacion de contenido
-    ans = realloc(ans, (i+1) * sizeof(char));
-    checkMem(ans,ffree);
+    auxp = realloc(ans, (i+1) * sizeof(char));
+    if(!checkMem(auxp,ffree)){
+        return ans;
+    }
+    ans=auxp; //se aplió correctamente
     ans[i] = 0;
     *dim = i;
     return ans;
@@ -95,8 +110,8 @@ static char * getLine(FILE * text, char * dest, unsigned int * dim, int * ffree)
 static char * copy(char * source,int* ffree){
     char * ans = malloc((strlen(source)+1) * sizeof(char));
     if(checkMem(ans,ffree)){
-    strcpy(ans, source);
-    return ans;
+        strcpy(ans, source);
+        return ans;
     }
     return NULL;
 }
@@ -108,18 +123,24 @@ static void copyGenres(TContent * aux , char * line, int* ffree){//revisar
     int pos = 0;
     char * token = lineToTokens(line, ',', &pos,ffree);
     int i = 0;
+    char** auxp;
     for(; token != NULL && *ffree!=ERR ; i++,token = lineToTokens(line, ',', &pos,ffree)){
         if((i % BLOCK) == 0) {
-            aux->genre = realloc(aux->genre, (BLOCK + i) * sizeof(char *));
-            checkMemGenre(aux,BLOCK+i);
+            auxp = realloc(aux->genre, (BLOCK + i) * sizeof(char *));
+            if(checkMemGenre(aux,auxp,i,ffree)){
+                aux->genre=auxp; //recien ahi lo asigno, si no libero todos los campos
+            }else{
+                return; //la funcion termina y la que lo llama tiene el mensaje de terminar
+            }
         }
         aux->genre[i] = token;
     }
-    if(*ffree==ERR){
-        //liberar todos
+    auxp = realloc(aux->genre, (i+1) * sizeof(char *));
+    if(checkMemGenre(aux,auxp,i,ffree)){
+        aux->genre=auxp; //recien ahi lo asigno, si no libero todos los campos
+    }else{
+        return; //la funcion termina y la que lo llama tiene el mensaje de terminar
     }
-    aux->genre = realloc(aux->genre, (i+1) * sizeof(char *));
-    checkMemGenre(aux,i+1);
     aux->genre[i] = NULL;
 }
 
@@ -146,6 +167,8 @@ static int getTokens(char * line, TContent * aux, int* ffree){
         switch(++counter){
             case PTITLE:
                 aux->primaryTitle = copy(token,ffree);
+                //en este caso tambíen debería liberar todos lo que tiene la estructura para ser consistentes
+                checkMemGenre(aux, aux,0,ffree); //si ffree es ERR, libera todo
                 break;
             case SYEAR:
                 aux->startYear = (!strcmp(token, "\\N")) ? INVALID : atoi(token);
@@ -155,10 +178,10 @@ static int getTokens(char * line, TContent * aux, int* ffree){
             case GENRE: //si falla el malloc del genero liberar los demas
                 if(aux->titleType == SER){
                     aux->genre = calloc(1,sizeof(char *));
-                    checkMemGenre(aux,1);
+                    checkMemGenre(aux,aux->genre,1,ffree); //si se reservó bien, sigue. Si no se libera toda la estructura.
                 }
                 else{
-                    copyGenres(aux, token,ffree);//tendriamos que hacer un free aca
+                    copyGenres(aux, token,ffree); //si hubo error, libera toda la estructura
                 }
                 break;
             case ARATE:
@@ -198,28 +221,28 @@ void readInput(int argQty, char * file[], imdbADT imdb){
     ** Además le da la informacion al ADT para que este mismo la procese.
     */
     int ffree=OK;
-    while((s = getLine(text,s,&dim,&flag)) != NULL && ffree!=ERR){ //Se obtiene la linea actual.
-        if(getTokens(s, aux, &ffree) && ffree!=ERR) { //Se obtienen los tokens de la linea actual.
+    while((s = getLine(text,s,&dim,&flag)) != NULL && ffree!=ERR) { //Se obtiene la linea actual.
+        if (getTokens(s, aux, &ffree) && ffree != ERR) { //si ffree==ERR, ya se libero toda la estructura
+            //Se obtienen los tokens de la linea actual.
             //asignar al adt SOLAMENTE en este caso
             if (add(imdb, aux) == ERR) {
                 freeImdb(imdb);
+                free(aux->genre);
+                free(aux);
+                free(s);
                 fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
                 exit(1);
             }
-        }else if (ffree==ERR){
-            //liberar estructura y tode lo que tiene adentro
-            for(int i=0;aux->genre!= NULL && aux->genre[i]!=NULL;i++){
-                free(aux->genre[i]);
-            }
-            free(aux->genre);
-            free(aux->primaryTitle);
-            free(aux);
-            fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
-            exit(1);
         }
-        free(aux->genre);
+        if (ffree!=ERR) { //si no, ya fue liberado, no deberia hacer doble free
+            free(aux->genre); //solo se debe hacer si no se libero la estructura antes
+        }
     }
     free(s);
     free(aux);
+    if(ffree==ERR){//la estructura ya fue liberada
+        fprintf(stderr, "NO HAY MEMORIA DISPONIBLE");
+        exit(1);
+    }
     fclose(text);
 }
