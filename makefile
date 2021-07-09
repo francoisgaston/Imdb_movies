@@ -17,12 +17,3 @@ RUN = @$(COMPILER) $(FLAGS) $(FILES) -o $(EXE_FILE) $(LIBRARIES)
 imdb:
 	$(RUN)
 	@echo "Nombre de archivo ejecutable: $(EXE_FILE)"
-
-remove:
-	@rm query?.csv $(EXE_FILE)
-	@echo "Querys y $(EXE_FILE) borrados"
-
-run:
-	$(RUN)
-	@./$(EXE_FILE) $(DATASET_FILE)
-	@echo "Proceso listo"

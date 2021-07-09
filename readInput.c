@@ -40,7 +40,7 @@ static int checkMemGenre(TContent * aux, void * auxp, int idx, int * ffree){
 ** los generos en el token de generos, un parametro de entrada/salida en donde se guarda la posicion
 ** en donde inicia el genero y un flag free que avisa si hay errores al querer reservar memeoria en el heap.
 */
-static char * lineToTokens(const char * line, char c, int * pos, int* ffree){//despues
+static char * lineToTokens(const char * line, char c, int * pos, int* ffree){
     int i, newDim = 0; 
     char * ans = NULL; // String donde se guardara el genero del token de generos.
     char * auxp; // Puntero a char auxiliar para saber si hay memoria disponible en el heap.
@@ -229,11 +229,7 @@ static int getTokens(char * line, TContent * aux, int* ffree){
 /* Funcion que guarda toda la informacion de peliculas/series presentes en el archivo
 ** llamado file para su posterior analisis.
 */
-void readInput(int argQty, char * file[], imdbADT imdb){
-    if(argQty != 2){ //Verifica si la cantidad de argumentos al ejecutar es correcta.
-        fprintf(stderr, "CANTIDAD DE ARGUMENTOS INVALIDA!\n");
-        exit(1);
-    }
+void readInput(char * file[], imdbADT imdb){
     FILE * text = fopen(file[1], "r"); //Se accede a los datos del archivo.
     TContent * aux = malloc(sizeof(TContent)); //Creacion de un puntero a la estructura que almacenara toda la informacion de cada linea del archivo.
     aux->genre = NULL;
